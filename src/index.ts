@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from "express";
+import express, { Express } from "express";
 import dotenv from "dotenv";
 import { connectDb } from "./config/dbConnection.js";
 import categoryRoutes from "./routes/categoriesRoutes.js";

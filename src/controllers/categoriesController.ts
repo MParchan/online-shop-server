@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import asyncHandler from "express-async-handler";
 import Category from "../models/categoriesModel.js";
+import { Types } from 'mongoose';
 
 //@desc Get all categories
 //@route GET /api/categories
@@ -28,6 +29,10 @@ const createCategory = asyncHandler(async (req: Request, res: Response) => {
 //@access public
 const getCategory = asyncHandler(async (req: Request, res: Response) => {
     const categoryId: string = req.params.id;
+    if (!Types.ObjectId.isValid(categoryId)) {
+        res.status(400).json({ message: "Invalid categoryId" });
+        return;
+    }
     const category = await Category.findById(categoryId);
     if (!category) {
         res.status(404).json({ message: "Category not found" });
@@ -42,7 +47,10 @@ const getCategory = asyncHandler(async (req: Request, res: Response) => {
 const updateCategory = asyncHandler(async (req: Request, res: Response) => {
     const categoryId: string = req.params.id;
     const { name }: { name: string } = req.body;
-
+    if (!Types.ObjectId.isValid(categoryId)) {
+        res.status(400).json({ message: "Invalid categoryId" });
+        return;
+    }
     const category = await Category.findById(categoryId);
     if (!category) {
         res.status(404).json({ message: 'Category not found' });
@@ -59,6 +67,10 @@ const updateCategory = asyncHandler(async (req: Request, res: Response) => {
 //@access public
 const deleteCategory = asyncHandler(async (req: Request, res: Response) => {
     const categoryId: string = req.params.id;
+    if (!Types.ObjectId.isValid(categoryId)) {
+        res.status(400).json({ message: "Invalid categoryId" });
+        return;
+    }
     const category = await Category.findByIdAndDelete(categoryId);
     if (!category) {
         res.status(404).json({ message: 'Category not found' });
