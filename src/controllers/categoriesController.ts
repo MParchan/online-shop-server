@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import asyncHandler from "express-async-handler";
-import Category from "../models/categoriesModel.js";
+import Category from "../models/categoriesModel";
 import { Types } from 'mongoose';
 
 //@desc Get all categories
