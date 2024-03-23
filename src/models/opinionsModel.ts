@@ -21,17 +21,17 @@ const opinionSchema = new Schema(
             type: String,
         },
 
-        user: [{
+        user: {
             type: Schema.Types.ObjectId,
             ref: "User",
             require: [true, "Opinion user is required"],
-        }],
+        },
 
-        product: [{
+        product: {
             type: Schema.Types.ObjectId,
             ref: "Product",
             require: [true, "Opinion product is required"],
-        }],
+        },
     },
     {
         timestamps: true,

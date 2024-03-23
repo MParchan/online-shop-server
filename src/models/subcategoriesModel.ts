@@ -7,11 +7,11 @@ const subcategorySchema = new Schema(
             require: [true, "Subcategory name is required"],
         },
 
-        category: [{
+        category: {
             type: Schema.Types.ObjectId,
             ref: "Category",
             require: [true, "Subcategory category is required"],
-        }]
+        }
     },
     {
         timestamps: true,

@@ -37,11 +37,11 @@ const orderSchema = new Schema(
             require: [true, "Order address street is required"],
         },
 
-        user: [{
+        user: {
             type: Schema.Types.ObjectId,
             ref: "User",
             require: [true, "Order user is required"],
-        }]
+        }
 
     },
     {

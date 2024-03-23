@@ -34,17 +34,17 @@ const productSchema = new Schema(
             require: [true, "Product quantity is required"],
         },
 
-        subcategory: [{
+        subcategory: {
             type: Schema.Types.ObjectId,
             ref: "Subcategory",
             require: [true, "Product subcategory is required"],
-        }],
+        },
 
-        brand: [{
+        brand: {
             type: Schema.Types.ObjectId,
             ref: "Brand",
             require: [true, "Product brand is required"],
-        }]
+        }
     },
     {
         timestamps: true,

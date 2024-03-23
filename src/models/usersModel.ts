@@ -25,11 +25,11 @@ const userSchema = new Schema(
             type: String,
         },
 
-        role: [{
+        role: {
             type: Schema.Types.ObjectId,
             ref: "Role",
             require: [true, "User role is required"],
-        }],
+        },
     },
     {
         timestamps: true,

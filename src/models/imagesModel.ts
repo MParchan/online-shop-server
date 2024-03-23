@@ -7,11 +7,11 @@ const imageSchema = new Schema(
             require: [true, "Image is required"],
         },
 
-        product: [{
+        product: {
             type: Schema.Types.ObjectId,
             ref: "Product",
             require: [true, "Image product is required"],
-        }],
+        },
     },
     {
         timestamps: true,

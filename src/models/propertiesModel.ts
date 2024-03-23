@@ -7,17 +7,17 @@ const propertySchema = new Schema(
             require: [true, "Property value is required"],
         },
 
-        product: [{
+        product: {
             type: Schema.Types.ObjectId,
             ref: "Product",
             require: [true, "Property product is required"],
-        }],
+        },
 
-        propertyType: [{
+        propertyType: {
             type: Schema.Types.ObjectId,
             ref: "PropertyType",
             require: [true, "Property property type is required"],
-        }]
+        }
     },
     {
         timestamps: true,
