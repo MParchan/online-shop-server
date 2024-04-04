@@ -9,8 +9,8 @@ const getCategories = async (req: Request, res: Response) => {
     try {
         const categories = await Category.find();
         res.status(200).json(categories);
-    }
-    catch (error: any) {
+    } catch (err) {
+        const error = err as Error;
         res.status(500).json({ message: error.message });
     }
 };
@@ -27,8 +27,8 @@ const createCategory = async (req: Request, res: Response) => {
         }
         const category = await Category.create({ name });
         res.status(201).json(category);
-    }
-    catch (error: any) {
+    } catch (err) {
+        const error = err as Error;
         res.status(500).json({ message: error.message });
     }
 };
@@ -49,8 +49,8 @@ const getCategory = async (req: Request, res: Response) => {
             return;
         }
         res.status(200).json(category);
-    }
-    catch (error: any) {
+    } catch (err) {
+        const error = err as Error;
         res.status(500).json({ message: error.message });
     }
 };
@@ -74,8 +74,8 @@ const updateCategory = async (req: Request, res: Response) => {
         category.name = name;
         await category.save();
         res.status(200).json(category);
-    }
-    catch (error: any) {
+    } catch (err) {
+        const error = err as Error;
         res.status(500).json({ message: error.message });
     }
 };
@@ -97,8 +97,8 @@ const deleteCategory = async (req: Request, res: Response) => {
             return;
         }
         res.status(200).json(category);
-    }
-    catch (error: any) {
+    } catch (err) {
+        const error = err as Error;
         res.status(500).json({ message: error.message });
     }
 };

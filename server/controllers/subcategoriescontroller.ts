@@ -10,8 +10,8 @@ const getSubcategories = async (req: Request, res: Response) => {
     try {
         const subcategories = await Subcategory.find().populate('category');
         res.status(200).json(subcategories);
-    }
-    catch (error: any) {
+    } catch (err) {
+        const error = err as Error;
         res.status(500).json({ message: error.message });
     }
 };
@@ -40,8 +40,8 @@ const createSubcategory = async (req: Request, res: Response) => {
 
         const subcategory = await Subcategory.create({ name, category });
         res.status(201).json(subcategory);
-    }
-    catch (error: any) {
+    } catch (err) {
+        const error = err as Error;
         res.status(500).json({ message: error.message });
     }
 };
@@ -62,8 +62,8 @@ const getSubcategory = async (req: Request, res: Response) => {
             return;
         }
         res.status(200).json(subcategory);
-    }
-    catch (error: any) {
+    } catch (err) {
+        const error = err as Error;
         res.status(500).json({ message: error.message });
     }
 };
@@ -105,8 +105,8 @@ const updateSubcategory = async (req: Request, res: Response) => {
         }
         await subcategory.save();
         res.status(200).json(subcategory);
-    }
-    catch (error: any) {
+    } catch (err) {
+        const error = err as Error;
         res.status(500).json({ message: error.message });
     }
 };
@@ -128,8 +128,8 @@ const deleteSubcategory = async (req: Request, res: Response) => {
             return;
         }
         res.status(200).json(subcategory);
-    }
-    catch (error: any) {
+    } catch (err) {
+        const error = err as Error;
         res.status(500).json({ message: error.message });
     }
 };
