@@ -8,8 +8,7 @@
     "dev": "nodemon",
     "lint": "eslint server/**/*.ts",
     "format": "eslint server/**/*.ts --fix",
-    "prepare": "husky install",
-    "test": ""
+    "prepare": "husky install"
   },
   "author": "Michał Parchanowicz",
   "license": "ISC",
