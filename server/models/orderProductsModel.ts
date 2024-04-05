@@ -10,23 +10,23 @@ const orderProductSchema = new Schema(
                 },
                 message: "{VALUE} is not a positive integer"
             },
-            require: [true, "Order product quantity is required"],
+            required: [true, "Order product quantity is required"]
         },
 
         order: {
             type: Schema.Types.ObjectId,
             ref: "Order",
-            require: [true, "Order product order is required"],
+            required: [true, "Order product order is required"]
         },
 
         product: {
             type: Schema.Types.ObjectId,
             ref: "Product",
-            require: [true, "Order product product is required"],
+            required: [true, "Order product product is required"]
         }
     },
     {
-        timestamps: true,
+        timestamps: true
     }
 );
 

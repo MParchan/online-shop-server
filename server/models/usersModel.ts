@@ -4,18 +4,18 @@ const userSchema = new Schema(
     {
         email: {
             type: String,
-            require: [true, "User email is required"],
+            required: [true, "User email is required"],
             unique: true
         },
 
         password: {
             type: String,
-            require: [true, "User password is required"]
+            required: [true, "User password is required"]
         },
 
         phoneNumber: {
             type: String,
-            require: [true, "User phone number is required"]
+            required: [true, "User phone number is required"]
         },
 
         firstName: {
@@ -29,7 +29,7 @@ const userSchema = new Schema(
         role: {
             type: Schema.Types.ObjectId,
             ref: "Role",
-            require: [true, "User role is required"]
+            required: [true, "User role is required"]
         }
     },
     {

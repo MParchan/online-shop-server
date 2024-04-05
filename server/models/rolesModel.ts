@@ -4,7 +4,7 @@ const roleSchema = new Schema(
     {
         name: {
             type: String,
-            require: [true, "Role name is required"],
+            required: [true, "Role name is required"],
             unique: true
         }
     },

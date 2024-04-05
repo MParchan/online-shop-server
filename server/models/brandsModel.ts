@@ -4,11 +4,11 @@ const brandSchema = new Schema(
     {
         name: {
             type: String,
-            require: [true, "Brand name is required"],
+            required: [true, "Brand name is required"]
         }
     },
     {
-        timestamps: true,
+        timestamps: true
     }
 );
 

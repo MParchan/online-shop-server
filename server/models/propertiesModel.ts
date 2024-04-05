@@ -4,23 +4,23 @@ const propertySchema = new Schema(
     {
         value: {
             type: String,
-            require: [true, "Property value is required"],
+            required: [true, "Property value is required"]
         },
 
         product: {
             type: Schema.Types.ObjectId,
             ref: "Product",
-            require: [true, "Property product is required"],
+            required: [true, "Property product is required"]
         },
 
         propertyType: {
             type: Schema.Types.ObjectId,
             ref: "PropertyType",
-            require: [true, "Property property type is required"],
+            required: [true, "Property property type is required"]
         }
     },
     {
-        timestamps: true,
+        timestamps: true
     }
 );
 

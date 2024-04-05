@@ -4,17 +4,17 @@ const subcategorySchema = new Schema(
     {
         name: {
             type: String,
-            require: [true, "Subcategory name is required"],
+            required: [true, "Subcategory name is required"]
         },
 
         category: {
             type: Schema.Types.ObjectId,
             ref: "Category",
-            require: [true, "Subcategory category is required"],
+            required: [true, "Subcategory category is required"]
         }
     },
     {
-        timestamps: true,
+        timestamps: true
     }
 );
 

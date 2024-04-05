@@ -4,17 +4,17 @@ const propertyTypeSchema = new Schema(
     {
         name: {
             type: String,
-            require: [true, "PropertyType name is required"],
+            required: [true, "PropertyType name is required"]
         },
 
         subcategory: {
             type: Schema.Types.ObjectId,
             ref: "Subcategory",
-            require: [true, "Property type subcategory is required"],
+            required: [true, "Property type subcategory is required"]
         }
     },
     {
-        timestamps: true,
+        timestamps: true
     }
 );
 

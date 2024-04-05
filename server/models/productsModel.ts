@@ -4,12 +4,12 @@ const productSchema = new Schema(
     {
         name: {
             type: String,
-            require: [true, "Product name is required"],
+            required: [true, "Product name is required"]
         },
 
         description: {
             type: String,
-            require: [true, "Product description is required"],
+            required: [true, "Product description is required"]
         },
 
         price: {
@@ -20,7 +20,7 @@ const productSchema = new Schema(
                 },
                 message: "{VALUE} is not a positive number with 2 decimal places"
             },
-            require: [true, "Product price is required"],
+            required: [true, "Product price is required"]
         },
 
         quantity: {
@@ -31,23 +31,23 @@ const productSchema = new Schema(
                 },
                 message: "{VALUE} is not a positive integer"
             },
-            require: [true, "Product quantity is required"],
+            required: [true, "Product quantity is required"]
         },
 
         subcategory: {
             type: Schema.Types.ObjectId,
             ref: "Subcategory",
-            require: [true, "Product subcategory is required"],
+            required: [true, "Product subcategory is required"]
         },
 
         brand: {
             type: Schema.Types.ObjectId,
             ref: "Brand",
-            require: [true, "Product brand is required"],
+            required: [true, "Product brand is required"]
         }
     },
     {
-        timestamps: true,
+        timestamps: true
     }
 );
 
