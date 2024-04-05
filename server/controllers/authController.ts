@@ -3,8 +3,8 @@ import User from "../models/usersModel";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import passwordRequiredCharacters from "../middleware/passwordRequiredCharactersHandler";
-import getRoleId from "../middleware/getRoleIdHandler";
 import { AuthorizedRequest } from "../types/interfaces/authorizedRequestInterface";
+import Role from "../models/rolesModel";
 
 //@desc User registration
 //@route POST /api/<API_VERSION>/auth/register
@@ -27,7 +27,7 @@ const registerUser = async (req: Request, res: Response) => {
             phoneNumber: string;
         } = req.body;
         if (!email || !password || !confirmPassword || !phoneNumber) {
-            res.status(400).json({ message: "Fields email, password, confirPassword and phoneNumber are mandatory" });
+            res.status(400).json({ message: "Fields email, password, confirmPassword and phoneNumber are mandatory" });
             return;
         }
         const existingUser = await User.findOne({ email: email });
@@ -44,20 +44,27 @@ const registerUser = async (req: Request, res: Response) => {
             return;
         }
         if (!passwordRequiredCharacters(password)) {
-            res.status(400).json({ message: "Password must be at least" });
+            res.status(400).json({
+                message:
+                    "The password must contain an uppercase letter, a lowercase letter, a special character and a number"
+            });
             return;
         }
         const hashedPassword = await bcrypt.hash(password, 10);
-        const roleId = await getRoleId("User", req, res);
+        const role = await Role.findOne({ name: "User" }).exec();
+        if (!role) {
+            res.status(404).json({ message: "Role not found" });
+            return;
+        }
         await User.create({
             email: email,
             password: hashedPassword,
             phoneNumber: phoneNumber,
             firstName: firstName,
             lastName: lastName,
-            roleId: roleId
+            role: role
         });
-        res.status(200).json("Register succesfully");
+        res.status(200).json({ message: "User register succesfully" });
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });
