@@ -6,7 +6,7 @@ const validateToken = async (req: AuthorizedRequest, res: Response, next: NextFu
     try {
         let token;
         const authHeader: string | string[] | undefined = req.headers.Authorization || req.headers.authorization;
-        const accessTokenSecret: string = process.env.ACCESS_TOKEN_SECRET || "secret";
+        const accessTokenSecret: string = process.env.ACCESS_TOKEN_SECRET || "Secret";
         if (typeof authHeader === "string") {
             if (authHeader && authHeader.startsWith("Bearer")) {
                 token = authHeader.split(" ")[1];

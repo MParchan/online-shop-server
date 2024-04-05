@@ -103,7 +103,7 @@ const loginUser = async (req: Request, res: Response) => {
 };
 
 //@desc Current user info
-//@route GET /api/users/current
+//@route GET /api/<API_VERSION>/auth/user
 //@access private
 const getCurrentUser = async (req: AuthorizedRequest, res: Response) => {
     try {
