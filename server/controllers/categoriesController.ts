@@ -1,9 +1,9 @@
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
 import Category from "../models/categoriesModel";
-import { Types } from 'mongoose';
+import { Types } from "mongoose";
 
 //@desc Get all categories
-//@route GET /api/categories
+//@route GET /api/<API_VERSION>/categories
 //@access public
 const getCategories = async (req: Request, res: Response) => {
     try {
@@ -16,7 +16,7 @@ const getCategories = async (req: Request, res: Response) => {
 };
 
 //@desc Create new category
-//@route POST /api/categories
+//@route POST /api/<API_VERSION>/categories
 //@access public
 const createCategory = async (req: Request, res: Response) => {
     try {
@@ -34,7 +34,7 @@ const createCategory = async (req: Request, res: Response) => {
 };
 
 //@desc Get category
-//@route GET /api/categories/:id
+//@route GET /api/<API_VERSION>/categories/:id
 //@access public
 const getCategory = async (req: Request, res: Response) => {
     try {
@@ -56,7 +56,7 @@ const getCategory = async (req: Request, res: Response) => {
 };
 
 //@desc Update category
-//@route PUT /api/categories/:id
+//@route PUT /api/<API_VERSION>/categories/:id
 //@access public
 const updateCategory = async (req: Request, res: Response) => {
     try {
@@ -68,7 +68,7 @@ const updateCategory = async (req: Request, res: Response) => {
         }
         const category = await Category.findById(id);
         if (!category) {
-            res.status(404).json({ message: 'Category not found' });
+            res.status(404).json({ message: "Category not found" });
             return;
         }
         category.name = name;
@@ -80,9 +80,8 @@ const updateCategory = async (req: Request, res: Response) => {
     }
 };
 
-
 //@desc Delete category
-//@route DELETE /api/categories/:id
+//@route DELETE /api/<API_VERSION>/categories/:id
 //@access public
 const deleteCategory = async (req: Request, res: Response) => {
     try {
@@ -93,7 +92,7 @@ const deleteCategory = async (req: Request, res: Response) => {
         }
         const category = await Category.findByIdAndDelete(id);
         if (!category) {
-            res.status(404).json({ message: 'Category not found' });
+            res.status(404).json({ message: "Category not found" });
             return;
         }
         res.status(200).json(category);

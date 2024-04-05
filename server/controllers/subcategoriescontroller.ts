@@ -1,14 +1,14 @@
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
 import Subcategory from "../models/subcategoriesModel";
-import { Types } from 'mongoose';
-import Category from '../models/categoriesModel';
+import { Types } from "mongoose";
+import Category from "../models/categoriesModel";
 
 //@desc Get all subcategories
-//@route GET /api/subcategories
+//@route GET /api/<API_VERSION>/subcategories
 //@access public
 const getSubcategories = async (req: Request, res: Response) => {
     try {
-        const subcategories = await Subcategory.find().populate('category');
+        const subcategories = await Subcategory.find().populate("category");
         res.status(200).json(subcategories);
     } catch (err) {
         const error = err as Error;
@@ -17,11 +17,11 @@ const getSubcategories = async (req: Request, res: Response) => {
 };
 
 //@desc Create new subcategory
-//@route POST /api/subcategories
+//@route POST /api/<API_VERSION>/subcategories
 //@access public
 const createSubcategory = async (req: Request, res: Response) => {
     try {
-        const { name, category }: { name: string, category: string } = req.body;
+        const { name, category }: { name: string; category: string } = req.body;
         if (!name || !category) {
             res.status(400).json({ message: "All fields are mandatory" });
             return;
@@ -47,7 +47,7 @@ const createSubcategory = async (req: Request, res: Response) => {
 };
 
 //@desc Get subcategory
-//@route GET /api/subcategories/:id
+//@route GET /api/<API_VERSION>/subcategories/:id
 //@access public
 const getSubcategory = async (req: Request, res: Response) => {
     try {
@@ -56,7 +56,7 @@ const getSubcategory = async (req: Request, res: Response) => {
             res.status(400).json({ message: "Invalid subcategory id" });
             return;
         }
-        const subcategory = await Subcategory.findById(id).populate('category');
+        const subcategory = await Subcategory.findById(id).populate("category");
         if (!subcategory) {
             res.status(404).json({ message: "Subcategory not found" });
             return;
@@ -69,19 +69,19 @@ const getSubcategory = async (req: Request, res: Response) => {
 };
 
 //@desc Update subcategory
-//@route PUT /api/subcategories/:id
+//@route PUT /api/<API_VERSION>/subcategories/:id
 //@access public
 const updateSubcategory = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        const { name, category }: { name: string, category: string } = req.body;
+        const { name, category }: { name: string; category: string } = req.body;
         if (!Types.ObjectId.isValid(id)) {
             res.status(400).json({ message: "Invalid subcategory id" });
             return;
         }
         const subcategory = await Subcategory.findById(id);
         if (!subcategory) {
-            res.status(404).json({ message: 'Subcategory not found' });
+            res.status(404).json({ message: "Subcategory not found" });
             return;
         }
 
@@ -94,8 +94,7 @@ const updateSubcategory = async (req: Request, res: Response) => {
             if (!existingCategory) {
                 res.status(400).json({ message: "Category not found" });
                 return;
-            }
-            else {
+            } else {
                 subcategory.category = new Types.ObjectId(category);
             }
         }
@@ -111,9 +110,8 @@ const updateSubcategory = async (req: Request, res: Response) => {
     }
 };
 
-
 //@desc Delete subcategory
-//@route DELETE /api/subcategories/:id
+//@route DELETE /api/<API_VERSION>/subcategories/:id
 //@access public
 const deleteSubcategory = async (req: Request, res: Response) => {
     try {
@@ -124,7 +122,7 @@ const deleteSubcategory = async (req: Request, res: Response) => {
         }
         const subcategory = await Subcategory.findByIdAndDelete(id);
         if (!subcategory) {
-            res.status(404).json({ message: 'Subcategory not found' });
+            res.status(404).json({ message: "Subcategory not found" });
             return;
         }
         res.status(200).json(subcategory);
