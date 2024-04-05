@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import Category from "../models/categoriesModel";
 import { Types } from "mongoose";
+import { AuthorizedRequest } from "../types/interfaces/authorizedRequestInterface";
+import isAdmin from "../middleware/isAdminHandler";
 
 //@desc Get all categories
 //@route GET /api/<API_VERSION>/categories
@@ -17,9 +19,14 @@ const getCategories = async (req: Request, res: Response) => {
 
 //@desc Create new category
 //@route POST /api/<API_VERSION>/categories
-//@access public
-const createCategory = async (req: Request, res: Response) => {
+//@access private
+const createCategory = async (req: AuthorizedRequest, res: Response) => {
     try {
+        const admin = await isAdmin(req, res);
+        if (!admin) {
+            res.status(401).json({ message: "User is not authorized" });
+            return;
+        }
         const { name }: { name: string } = req.body;
         if (!name) {
             res.status(400).json({ message: "All fields are mandatory" });
@@ -57,10 +64,16 @@ const getCategory = async (req: Request, res: Response) => {
 
 //@desc Update category
 //@route PUT /api/<API_VERSION>/categories/:id
-//@access public
-const updateCategory = async (req: Request, res: Response) => {
+//@access private
+const updateCategory = async (req: AuthorizedRequest, res: Response) => {
     try {
+        const admin = await isAdmin(req, res);
+        if (!admin) {
+            res.status(401).json({ message: "User is not authorized" });
+            return;
+        }
         const id: string = req.params.id;
+        await isAdmin(req, res);
         const { name }: { name: string } = req.body;
         if (!Types.ObjectId.isValid(id)) {
             res.status(400).json({ message: "Invalid category id" });
@@ -82,9 +95,14 @@ const updateCategory = async (req: Request, res: Response) => {
 
 //@desc Delete category
 //@route DELETE /api/<API_VERSION>/categories/:id
-//@access public
-const deleteCategory = async (req: Request, res: Response) => {
+//@access private
+const deleteCategory = async (req: AuthorizedRequest, res: Response) => {
     try {
+        const admin = await isAdmin(req, res);
+        if (!admin) {
+            res.status(401).json({ message: "User is not authorized" });
+            return;
+        }
         const id: string = req.params.id;
         if (!Types.ObjectId.isValid(id)) {
             res.status(400).json({ message: "Invalid category id" });
