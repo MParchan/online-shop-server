@@ -30,7 +30,7 @@ const createSubcategory = async (req: AuthorizedRequest, res: Response) => {
         }
         const { name, category }: { name: string; category: string } = req.body;
         if (!name || !category) {
-            res.status(400).json({ message: "All fields are mandatory" });
+            res.status(400).json({ message: "Fields name and category are mandatory" });
             return;
         }
 
@@ -60,7 +60,7 @@ const getSubcategory = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
         if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid subcategory id" });
+            res.status(400).json({ message: "Invalid id" });
             return;
         }
         const subcategory = await Subcategory.findById(id).populate("category");
