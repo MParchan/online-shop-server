@@ -88,7 +88,7 @@ const updateSubcategory = async (req: AuthorizedRequest, res: Response) => {
         const id: string = req.params.id;
         const { name, category }: { name: string; category: string } = req.body;
         if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid subcategory id" });
+            res.status(400).json({ message: "Invalid id" });
             return;
         }
         const subcategory = await Subcategory.findById(id);
@@ -134,7 +134,7 @@ const deleteSubcategory = async (req: AuthorizedRequest, res: Response) => {
         }
         const id: string = req.params.id;
         if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid subcategory id" });
+            res.status(400).json({ message: "Invalid id" });
             return;
         }
         const subcategory = await Subcategory.findByIdAndDelete(id);

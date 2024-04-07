@@ -1,12 +1,19 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { Types } from "mongoose";
 import Role from "../models/rolesModel";
+import { AuthorizedRequest } from "../types/interfaces/authorizedRequestInterface";
+import isAdmin from "../middleware/isAdminHandler";
 
 //@desc Get all roles
 //@route GET /api/<API_VERSION>/roles
 //@access public
-const getRoles = async (req: Request, res: Response) => {
+const getRoles = async (req: AuthorizedRequest, res: Response) => {
     try {
+        const admin = await isAdmin(req, res);
+        if (!admin) {
+            res.status(401).json({ message: "User is not authorized" });
+            return;
+        }
         const roles = await Role.find();
         res.status(200).json(roles);
     } catch (err) {
@@ -18,11 +25,16 @@ const getRoles = async (req: Request, res: Response) => {
 //@desc Create new role
 //@route POST /api/<API_VERSION>/roles
 //@access public
-const createRole = async (req: Request, res: Response) => {
+const createRole = async (req: AuthorizedRequest, res: Response) => {
     try {
+        const admin = await isAdmin(req, res);
+        if (!admin) {
+            res.status(401).json({ message: "User is not authorized" });
+            return;
+        }
         const { name }: { name: string } = req.body;
         if (!name) {
-            res.status(400).json({ message: "All fields are mandatory" });
+            res.status(400).json({ message: "Field name is mandatory" });
             return;
         }
         const existingRole = await Role.find({ name: name });
@@ -41,8 +53,13 @@ const createRole = async (req: Request, res: Response) => {
 //@desc Get role
 //@route GET /api/<API_VERSION>/roles/:id
 //@access public
-const getRole = async (req: Request, res: Response) => {
+const getRole = async (req: AuthorizedRequest, res: Response) => {
     try {
+        const admin = await isAdmin(req, res);
+        if (!admin) {
+            res.status(401).json({ message: "User is not authorized" });
+            return;
+        }
         const id: string = req.params.id;
         if (!Types.ObjectId.isValid(id)) {
             res.status(400).json({ message: "Invalid id" });
@@ -63,8 +80,13 @@ const getRole = async (req: Request, res: Response) => {
 //@desc Update role
 //@route PUT /api/<API_VERSION>/roles/:id
 //@access public
-const updateRole = async (req: Request, res: Response) => {
+const updateRole = async (req: AuthorizedRequest, res: Response) => {
     try {
+        const admin = await isAdmin(req, res);
+        if (!admin) {
+            res.status(401).json({ message: "User is not authorized" });
+            return;
+        }
         const id: string = req.params.id;
         const { name }: { name: string } = req.body;
         if (!Types.ObjectId.isValid(id)) {
@@ -86,8 +108,13 @@ const updateRole = async (req: Request, res: Response) => {
 //@desc Delete role
 //@route DELETE /api/<API_VERSION>/roles/:id
 //@access public
-const deleteRole = async (req: Request, res: Response) => {
+const deleteRole = async (req: AuthorizedRequest, res: Response) => {
     try {
+        const admin = await isAdmin(req, res);
+        if (!admin) {
+            res.status(401).json({ message: "User is not authorized" });
+            return;
+        }
         const id: string = req.params.id;
         if (!Types.ObjectId.isValid(id)) {
             res.status(400).json({ message: "Invalid id" });

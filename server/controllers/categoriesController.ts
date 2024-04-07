@@ -29,7 +29,7 @@ const createCategory = async (req: AuthorizedRequest, res: Response) => {
         }
         const { name }: { name: string } = req.body;
         if (!name) {
-            res.status(400).json({ message: "All fields are mandatory" });
+            res.status(400).json({ message: "Field name is mandatory" });
             return;
         }
         const category = await Category.create({ name });
@@ -47,7 +47,7 @@ const getCategory = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
         if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid category id" });
+            res.status(400).json({ message: "Invalid id" });
             return;
         }
         const category = await Category.findById(id);
@@ -73,19 +73,16 @@ const updateCategory = async (req: AuthorizedRequest, res: Response) => {
             return;
         }
         const id: string = req.params.id;
-        await isAdmin(req, res);
         const { name }: { name: string } = req.body;
         if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid category id" });
+            res.status(400).json({ message: "Invalid id" });
             return;
         }
-        const category = await Category.findById(id);
+        const category = await Category.findByIdAndUpdate(id, { name: name });
         if (!category) {
             res.status(404).json({ message: "Category not found" });
             return;
         }
-        category.name = name;
-        await category.save();
         res.status(200).json(category);
     } catch (err) {
         const error = err as Error;
@@ -105,7 +102,7 @@ const deleteCategory = async (req: AuthorizedRequest, res: Response) => {
         }
         const id: string = req.params.id;
         if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid category id" });
+            res.status(400).json({ message: "Invalid id" });
             return;
         }
         const category = await Category.findByIdAndDelete(id);
