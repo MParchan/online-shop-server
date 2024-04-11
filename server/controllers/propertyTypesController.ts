@@ -21,12 +21,12 @@ const getPropertyTypes = async (req: Request, res: Response) => {
 
 //@desc Create new property type
 //@route POST /api/<API_VERSION>/property-types
-//@access private
+//@access private - Admin only
 const createPropertyType = async (req: AuthorizedRequest, res: Response) => {
     try {
         const admin = await isAdmin(req, res);
         if (!admin) {
-            res.status(401).json({ message: "User is not authorized" });
+            res.status(403).json({ message: "Access denied" });
             return;
         }
         const { name, subcategory }: { name: string; subcategory: string } = req.body;
@@ -78,12 +78,12 @@ const getPropertyType = async (req: Request, res: Response) => {
 
 //@desc Update property type
 //@route PUT /api/<API_VERSION>/property-types/:id
-//@access private
+//@access private - Admin only
 const updatePropertyType = async (req: AuthorizedRequest, res: Response) => {
     try {
         const admin = await isAdmin(req, res);
         if (!admin) {
-            res.status(401).json({ message: "User is not authorized" });
+            res.status(403).json({ message: "Access denied" });
             return;
         }
         const id: string = req.params.id;
@@ -125,12 +125,12 @@ const updatePropertyType = async (req: AuthorizedRequest, res: Response) => {
 
 //@desc Delete property type
 //@route DELETE /api/<API_VERSION>/property-types/:id
-//@access private
+//@access private - Admin only
 const deletePropertyType = async (req: AuthorizedRequest, res: Response) => {
     try {
         const admin = await isAdmin(req, res);
         if (!admin) {
-            res.status(401).json({ message: "User is not authorized" });
+            res.status(403).json({ message: "Access denied" });
             return;
         }
         const id: string = req.params.id;

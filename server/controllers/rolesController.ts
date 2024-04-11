@@ -6,12 +6,12 @@ import isAdmin from "../middleware/isAdminHandler";
 
 //@desc Get all roles
 //@route GET /api/<API_VERSION>/roles
-//@access public
+//@access private - Admin only
 const getRoles = async (req: AuthorizedRequest, res: Response) => {
     try {
         const admin = await isAdmin(req, res);
         if (!admin) {
-            res.status(401).json({ message: "User is not authorized" });
+            res.status(403).json({ message: "Access denied" });
             return;
         }
         const roles = await Role.find();
@@ -24,12 +24,12 @@ const getRoles = async (req: AuthorizedRequest, res: Response) => {
 
 //@desc Create new role
 //@route POST /api/<API_VERSION>/roles
-//@access public
+//@access private - Admin only
 const createRole = async (req: AuthorizedRequest, res: Response) => {
     try {
         const admin = await isAdmin(req, res);
         if (!admin) {
-            res.status(401).json({ message: "User is not authorized" });
+            res.status(403).json({ message: "Access denied" });
             return;
         }
         const { name }: { name: string } = req.body;
@@ -52,12 +52,12 @@ const createRole = async (req: AuthorizedRequest, res: Response) => {
 
 //@desc Get role
 //@route GET /api/<API_VERSION>/roles/:id
-//@access public
+//@access private - Admin only
 const getRole = async (req: AuthorizedRequest, res: Response) => {
     try {
         const admin = await isAdmin(req, res);
         if (!admin) {
-            res.status(401).json({ message: "User is not authorized" });
+            res.status(403).json({ message: "Access denied" });
             return;
         }
         const id: string = req.params.id;
@@ -79,12 +79,12 @@ const getRole = async (req: AuthorizedRequest, res: Response) => {
 
 //@desc Update role
 //@route PUT /api/<API_VERSION>/roles/:id
-//@access public
+//@access private - Admin only
 const updateRole = async (req: AuthorizedRequest, res: Response) => {
     try {
         const admin = await isAdmin(req, res);
         if (!admin) {
-            res.status(401).json({ message: "User is not authorized" });
+            res.status(403).json({ message: "Access denied" });
             return;
         }
         const id: string = req.params.id;
@@ -107,12 +107,12 @@ const updateRole = async (req: AuthorizedRequest, res: Response) => {
 
 //@desc Delete role
 //@route DELETE /api/<API_VERSION>/roles/:id
-//@access public
+//@access private - Admin only
 const deleteRole = async (req: AuthorizedRequest, res: Response) => {
     try {
         const admin = await isAdmin(req, res);
         if (!admin) {
-            res.status(401).json({ message: "User is not authorized" });
+            res.status(403).json({ message: "Access denied" });
             return;
         }
         const id: string = req.params.id;

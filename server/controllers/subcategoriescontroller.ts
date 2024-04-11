@@ -20,12 +20,12 @@ const getSubcategories = async (req: Request, res: Response) => {
 
 //@desc Create new subcategory
 //@route POST /api/<API_VERSION>/subcategories
-//@access private
+//@access private - Admin only
 const createSubcategory = async (req: AuthorizedRequest, res: Response) => {
     try {
         const admin = await isAdmin(req, res);
         if (!admin) {
-            res.status(401).json({ message: "User is not authorized" });
+            res.status(403).json({ message: "Access denied" });
             return;
         }
         const { name, category }: { name: string; category: string } = req.body;
@@ -77,12 +77,12 @@ const getSubcategory = async (req: Request, res: Response) => {
 
 //@desc Update subcategory
 //@route PUT /api/<API_VERSION>/subcategories/:id
-//@access private
+//@access private - Admin only
 const updateSubcategory = async (req: AuthorizedRequest, res: Response) => {
     try {
         const admin = await isAdmin(req, res);
         if (!admin) {
-            res.status(401).json({ message: "User is not authorized" });
+            res.status(403).json({ message: "Access denied" });
             return;
         }
         const id: string = req.params.id;
@@ -124,12 +124,12 @@ const updateSubcategory = async (req: AuthorizedRequest, res: Response) => {
 
 //@desc Delete subcategory
 //@route DELETE /api/<API_VERSION>/subcategories/:id
-//@access private
+//@access private - Admin only
 const deleteSubcategory = async (req: AuthorizedRequest, res: Response) => {
     try {
         const admin = await isAdmin(req, res);
         if (!admin) {
-            res.status(401).json({ message: "User is not authorized" });
+            res.status(403).json({ message: "Access denied" });
             return;
         }
         const id: string = req.params.id;

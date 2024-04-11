@@ -19,12 +19,12 @@ const getBrands = async (req: Request, res: Response) => {
 
 //@desc Create new brand
 //@route POST /api/<API_VERSION>/bradns
-//@access private
+//@access private - admin only
 const createBrand = async (req: AuthorizedRequest, res: Response) => {
     try {
         const admin = await isAdmin(req, res);
         if (!admin) {
-            res.status(401).json({ message: "User is not authorized" });
+            res.status(403).json({ message: "Access denied" });
             return;
         }
         const { name }: { name: string } = req.body;
@@ -64,12 +64,12 @@ const getBrand = async (req: Request, res: Response) => {
 
 //@desc Update brand
 //@route PUT /api/<API_VERSION>/brands/:id
-//@access private
+//@access private - Admin only
 const updateBrand = async (req: AuthorizedRequest, res: Response) => {
     try {
         const admin = await isAdmin(req, res);
         if (!admin) {
-            res.status(401).json({ message: "User is not authorized" });
+            res.status(403).json({ message: "Access denied" });
             return;
         }
         const id: string = req.params.id;
@@ -92,12 +92,12 @@ const updateBrand = async (req: AuthorizedRequest, res: Response) => {
 
 //@desc Delete brand
 //@route DELETE /api/<API_VERSION>/brands/:id
-//@access private
+//@access private - Admin only
 const deleteBrand = async (req: AuthorizedRequest, res: Response) => {
     try {
         const admin = await isAdmin(req, res);
         if (!admin) {
-            res.status(401).json({ message: "User is not authorized" });
+            res.status(403).json({ message: "Access denied" });
             return;
         }
         const id: string = req.params.id;
