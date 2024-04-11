@@ -14,7 +14,8 @@ const opinionSchema = new Schema(
                     return Number.isInteger(value) && value >= 1 && value <= 5;
                 },
                 message: "{VALUE} is not a valid integer between 1 and 5"
-            }
+            },
+            required: [true, "Opinion raiting is required"]
         },
 
         description: {
