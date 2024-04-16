@@ -1,5 +1,5 @@
 const passwordRequiredCharacters = (password: string) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+-=;:'",.<>/?])[A-Za-z\d!@#$%^&*()_+-=;:'",.<>/?]/;
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()\-_=+])[a-zA-Z0-9!@#$%^&*()\-_=+]+$/;
     return regex.test(password);
 };
 

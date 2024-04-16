@@ -3,13 +3,14 @@ import { Types } from "mongoose";
 import Role from "../models/rolesModel";
 import { AuthorizedRequest } from "../types/express/authorizedRequest.interface";
 import isAdmin from "../middleware/isAdminHandler";
+import { IRole } from "../types/mongodb/role.interface";
 
 //@desc Get all roles
 //@route GET /api/<API_VERSION>/roles
 //@access private - Admin only
 const getRoles = async (req: AuthorizedRequest, res: Response) => {
     try {
-        const admin = await isAdmin(req, res);
+        const admin = await isAdmin(req);
         if (!admin) {
             res.status(403).json({ message: "Access denied" });
             return;
@@ -27,23 +28,19 @@ const getRoles = async (req: AuthorizedRequest, res: Response) => {
 //@access private - Admin only
 const createRole = async (req: AuthorizedRequest, res: Response) => {
     try {
-        const admin = await isAdmin(req, res);
+        const admin = await isAdmin(req);
         if (!admin) {
             res.status(403).json({ message: "Access denied" });
             return;
         }
-        const { name }: { name: string } = req.body;
-        if (!name) {
-            res.status(400).json({ message: "Field name is mandatory" });
-            return;
+        const role: IRole = req.body;
+        try {
+            const createdRole = await Role.create(role);
+            res.status(201).json(createdRole);
+        } catch (err) {
+            const error = err as Error;
+            res.status(400).json({ message: error.message });
         }
-        const existingRole = await Role.find({ name: name });
-        if (existingRole.length > 0) {
-            res.status(400).json({ message: "Role already exists" });
-            return;
-        }
-        const role = await Role.create({ name });
-        res.status(201).json(role);
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });
@@ -55,14 +52,14 @@ const createRole = async (req: AuthorizedRequest, res: Response) => {
 //@access private - Admin only
 const getRole = async (req: AuthorizedRequest, res: Response) => {
     try {
-        const admin = await isAdmin(req, res);
+        const admin = await isAdmin(req);
         if (!admin) {
             res.status(403).json({ message: "Access denied" });
             return;
         }
         const id: string = req.params.id;
         if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid id" });
+            res.status(404).json({ message: "Invalid id" });
             return;
         }
         const role = await Role.findById(id);
@@ -82,23 +79,28 @@ const getRole = async (req: AuthorizedRequest, res: Response) => {
 //@access private - Admin only
 const updateRole = async (req: AuthorizedRequest, res: Response) => {
     try {
-        const admin = await isAdmin(req, res);
+        const admin = await isAdmin(req);
         if (!admin) {
             res.status(403).json({ message: "Access denied" });
             return;
         }
         const id: string = req.params.id;
-        const { name }: { name: string } = req.body;
+        const role: IRole = req.body;
         if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid id" });
+            res.status(404).json({ message: "Invalid id" });
             return;
         }
-        const role = await Role.findByIdAndUpdate(id, { name: name });
-        if (!role) {
-            res.status(404).json({ message: "Role not found" });
-            return;
+        try {
+            const updatedRole = await Role.findByIdAndUpdate(id, role, { new: true });
+            if (!updatedRole) {
+                res.status(404).json({ message: "Role not found" });
+                return;
+            }
+            res.status(200).json(updatedRole);
+        } catch (err) {
+            const error = err as Error;
+            res.status(400).json({ message: error.message });
         }
-        res.status(200).json(role);
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });
@@ -110,14 +112,14 @@ const updateRole = async (req: AuthorizedRequest, res: Response) => {
 //@access private - Admin only
 const deleteRole = async (req: AuthorizedRequest, res: Response) => {
     try {
-        const admin = await isAdmin(req, res);
+        const admin = await isAdmin(req);
         if (!admin) {
             res.status(403).json({ message: "Access denied" });
             return;
         }
         const id: string = req.params.id;
         if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid id" });
+            res.status(404).json({ message: "Invalid id" });
             return;
         }
         const role = await Role.findByIdAndDelete(id);
@@ -125,7 +127,7 @@ const deleteRole = async (req: AuthorizedRequest, res: Response) => {
             res.status(404).json({ message: "Role not found" });
             return;
         }
-        res.status(200).json(role);
+        res.status(204).json();
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });

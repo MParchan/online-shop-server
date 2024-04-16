@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import passwordRequiredCharacters from "../middleware/passwordRequiredCharactersHandler";
 import { AuthorizedRequest } from "../types/express/authorizedRequest.interface";
 import Role from "../models/rolesModel";
+import { IUser } from "../types/mongodb/user.interface";
 
 //@desc User registration
 //@route POST /api/<API_VERSION>/auth/register
@@ -12,59 +13,46 @@ import Role from "../models/rolesModel";
 const registerUser = async (req: Request, res: Response) => {
     try {
         const {
-            email,
-            password,
             confirmPassword,
-            firstName,
-            lastName,
-            phoneNumber
+            ...user
         }: {
-            email: string;
-            password: string;
             confirmPassword: string;
-            firstName: string;
-            lastName: string;
-            phoneNumber: string;
-        } = req.body;
-        if (!email || !password || !confirmPassword || !phoneNumber) {
-            res.status(400).json({ message: "Fields email, password, confirmPassword and phoneNumber are mandatory" });
-            return;
-        }
-        const existingUser = await User.findOne({ email: email });
+        } & IUser = req.body;
+
+        const existingUser = await User.findOne({ email: user.email });
         if (existingUser) {
-            res.status(400).json({ message: "User with this email already exists" });
+            res.status(409).json({ message: "User with this email already exists" });
             return;
         }
-        if (password !== confirmPassword) {
+        if (user.password !== confirmPassword) {
             res.status(400).json({ message: "Password and confirm password is not the same" });
             return;
         }
-        if (password.length < 8) {
+        if (user.password.length < 8) {
             res.status(400).json({ message: "Password must be at least 8 characters long" });
             return;
         }
-        if (!passwordRequiredCharacters(password)) {
+        if (!passwordRequiredCharacters(user.password)) {
             res.status(400).json({
                 message:
                     "The password must contain an uppercase letter, a lowercase letter, a special character and a number"
             });
             return;
         }
-        const hashedPassword = await bcrypt.hash(password, 10);
+        user.password = await bcrypt.hash(user.password, 10);
         const role = await Role.findOne({ name: "User" }).exec();
         if (!role) {
-            res.status(404).json({ message: "Role not found" });
+            res.status(400).json({ message: "Role not found" });
             return;
         }
-        await User.create({
-            email: email,
-            password: hashedPassword,
-            phoneNumber: phoneNumber,
-            firstName: firstName,
-            lastName: lastName,
-            role: role
-        });
-        res.status(200).json({ message: "User register succesfully" });
+        user.role = role._id;
+        try {
+            await User.create(user);
+            res.status(200).json({ message: "User register succesfully" });
+        } catch (err) {
+            const error = err as Error;
+            res.status(400).json({ message: error.message });
+        }
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });

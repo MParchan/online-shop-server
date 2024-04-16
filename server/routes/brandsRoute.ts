@@ -5,7 +5,6 @@ import { getBrands, createBrand, getBrand, updateBrand, deleteBrand } from "../c
 const router = express.Router();
 
 router.route("/").get(getBrands).post(validateToken, createBrand);
-
 router.route("/:id").get(getBrand).put(validateToken, updateBrand).delete(validateToken, deleteBrand);
 
 export default router;

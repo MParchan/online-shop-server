@@ -22,7 +22,7 @@ const getProducts = async (req: Request, res: Response) => {
 //@access private- Admin only
 const createProduct = async (req: AuthorizedRequest, res: Response) => {
     try {
-        const admin = await isAdmin(req, res);
+        const admin = await isAdmin(req);
         if (!admin) {
             res.status(403).json({ message: "Access denied" });
             return;

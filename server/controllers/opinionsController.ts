@@ -5,6 +5,7 @@ import isAdmin from "../middleware/isAdminHandler";
 import Product from "../models/productsModel";
 import Opinion from "../models/opinionsModel";
 import getUserId from "../middleware/getUserIdHandler";
+import { IOpinion } from "../types/mongodb/opinion.interface";
 
 //@desc Get all product opinions
 //@route GET /api/<API_VERSION>/opinions
@@ -30,26 +31,31 @@ const getOpinions = async (req: Request, res: Response) => {
 //@access private
 const createOpinion = async (req: AuthorizedRequest, res: Response) => {
     try {
-        const user = await getUserId(req, res);
-        const { rating, description, product }: { rating: number; description: string; product: string } = req.body;
-        if (!rating || !description || !product) {
-            res.status(400).json({ message: "Fields rating, description and product are mandatory" });
-            return;
+        const user = await getUserId(req);
+        if (!user) {
+            res.status(401).json({ message: "User is not authorized" });
         }
+        const opinion: IOpinion = req.body;
+        opinion.user = user;
+        opinion.date = new Date();
 
-        if (!Types.ObjectId.isValid(product)) {
+        if (!Types.ObjectId.isValid(opinion.product)) {
             res.status(400).json({ message: "Invalid product id" });
             return;
         }
-
-        const existingProduct = await Product.findById(product);
+        const existingProduct = await Product.findById(opinion.product);
         if (!existingProduct) {
             res.status(400).json({ message: "Product not found" });
             return;
         }
-        const date = Date.now();
-        const opinion = await Opinion.create({ date, rating, description, product, user });
-        res.status(201).json(opinion);
+
+        try {
+            const createdOpinion = await Opinion.create(opinion);
+            res.status(201).json(createdOpinion);
+        } catch (err) {
+            const error = err as Error;
+            res.status(400).json({ message: error.message });
+        }
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });
@@ -63,7 +69,7 @@ const getOpinion = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
         if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid id" });
+            res.status(404).json({ message: "Invalid id" });
             return;
         }
         const opinion = await Opinion.findById(id);
@@ -83,32 +89,42 @@ const getOpinion = async (req: Request, res: Response) => {
 //@access private
 const updateOpinion = async (req: AuthorizedRequest, res: Response) => {
     try {
-        const user = await getUserId(req, res);
+        const user = await getUserId(req);
         const id: string = req.params.id;
-        const { rating, description }: { rating: number; description: string } = req.body;
+        const opinion: IOpinion = req.body;
         if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid id" });
+            res.status(404).json({ message: "Invalid id" });
             return;
         }
-        const opinion = await Opinion.findById(id);
-        if (!opinion) {
+
+        if (opinion.product) {
+            if (!Types.ObjectId.isValid(opinion.product)) {
+                res.status(400).json({ message: "Invalid product id" });
+                return;
+            }
+            const existingProduct = await Product.findById(opinion.product);
+            if (!existingProduct) {
+                res.status(400).json({ message: "Product not found" });
+                return;
+            }
+        }
+
+        const existingOpinion = await Opinion.findById(id);
+        if (!existingOpinion) {
             res.status(404).json({ message: "Opinion not found" });
             return;
         }
-        if (opinion.user !== user) {
-            res.status(401).json({ message: "User not authorized" });
+        if (existingOpinion.user !== user) {
+            res.status(401).json({ message: "User is not authorized" });
             return;
         }
-
-        if (rating) {
-            opinion.rating = rating;
+        try {
+            const updatedOpinion = await Opinion.findByIdAndUpdate(id, opinion, { new: true });
+            res.status(200).json(updatedOpinion);
+        } catch (err) {
+            const error = err as Error;
+            res.status(400).json({ message: error.message });
         }
-        if (description) {
-            opinion.description = description;
-        }
-        await opinion.save();
-
-        res.status(200).json(opinion);
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });
@@ -120,11 +136,11 @@ const updateOpinion = async (req: AuthorizedRequest, res: Response) => {
 //@access private
 const deleteOpinion = async (req: AuthorizedRequest, res: Response) => {
     try {
-        const admin = await isAdmin(req, res);
-        const user = await getUserId(req, res);
+        const admin = await isAdmin(req);
+        const user = await getUserId(req);
         const id: string = req.params.id;
         if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid id" });
+            res.status(404).json({ message: "Invalid id" });
             return;
         }
         const opinion = await Opinion.findById(id);

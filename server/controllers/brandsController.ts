@@ -23,14 +23,19 @@ const getBrands = async (req: Request, res: Response) => {
 //@access private - admin only
 const createBrand = async (req: AuthorizedRequest, res: Response) => {
     try {
-        const admin = await isAdmin(req, res);
+        const admin = await isAdmin(req);
         if (!admin) {
             res.status(403).json({ message: "Access denied" });
             return;
         }
         const brand: IBrand = req.body;
-        const createdBrand = await Brand.create(brand);
-        res.status(201).json(createdBrand);
+        try {
+            const createdBrand = await Brand.create(brand);
+            res.status(201).json(createdBrand);
+        } catch (err) {
+            const error = err as Error;
+            res.status(400).json({ message: error.message });
+        }
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });
@@ -44,7 +49,7 @@ const getBrand = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
         if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid id" });
+            res.status(404).json({ message: "Invalid id" });
             return;
         }
         const brand = await Brand.findById(id);
@@ -64,7 +69,7 @@ const getBrand = async (req: Request, res: Response) => {
 //@access private - Admin only
 const updateBrand = async (req: AuthorizedRequest, res: Response) => {
     try {
-        const admin = await isAdmin(req, res);
+        const admin = await isAdmin(req);
         if (!admin) {
             res.status(403).json({ message: "Access denied" });
             return;
@@ -72,15 +77,20 @@ const updateBrand = async (req: AuthorizedRequest, res: Response) => {
         const id: string = req.params.id;
         const brand: IBrand = req.body;
         if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid id" });
+            res.status(404).json({ message: "Invalid id" });
             return;
         }
-        const updatedBrand = await Brand.findByIdAndUpdate(id, brand);
-        if (!brand) {
-            res.status(404).json({ message: "Brand not found" });
-            return;
+        try {
+            const updatedBrand = await Brand.findByIdAndUpdate(id, brand, { new: true });
+            if (!brand) {
+                res.status(404).json({ message: "Brand not found" });
+                return;
+            }
+            res.status(200).json(updatedBrand);
+        } catch (err) {
+            const error = err as Error;
+            res.status(400).json({ message: error.message });
         }
-        res.status(200).json(updatedBrand);
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });
@@ -92,14 +102,14 @@ const updateBrand = async (req: AuthorizedRequest, res: Response) => {
 //@access private - Admin only
 const deleteBrand = async (req: AuthorizedRequest, res: Response) => {
     try {
-        const admin = await isAdmin(req, res);
+        const admin = await isAdmin(req);
         if (!admin) {
             res.status(403).json({ message: "Access denied" });
             return;
         }
         const id: string = req.params.id;
         if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid id" });
+            res.status(404).json({ message: "Invalid id" });
             return;
         }
         const brand = await Brand.findByIdAndDelete(id);
@@ -107,7 +117,7 @@ const deleteBrand = async (req: AuthorizedRequest, res: Response) => {
             res.status(404).json({ message: "Brand not found" });
             return;
         }
-        res.status(200).json(brand);
+        res.status(204).json();
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });
