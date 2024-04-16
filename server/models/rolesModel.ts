@@ -1,17 +1,20 @@
 import { Schema, model } from "mongoose";
+import { IRole } from "../types/mongodb/role.interface";
 
-const roleSchema = new Schema(
-    {
-        name: {
-            type: String,
-            required: [true, "Role name is required"],
-            unique: true
+const RoleModel = model(
+    "Role",
+    new Schema<IRole>(
+        {
+            name: {
+                type: String,
+                required: [true, "Role name is required"],
+                unique: true
+            }
+        },
+        {
+            timestamps: true
         }
-    },
-    {
-        timestamps: true
-    }
+    )
 );
 
-const Role = model("Role", roleSchema);
-export default Role;
+export default RoleModel;

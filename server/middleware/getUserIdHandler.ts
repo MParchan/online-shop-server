@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { AuthorizedRequest } from "../types/interfaces/authorizedRequestInterface";
+import { AuthorizedRequest } from "../types/express/authorizedRequest.interface";
 import User from "../models/usersModel";
 
 const getUserId = async (req: AuthorizedRequest, res: Response) => {

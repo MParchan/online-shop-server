@@ -1,16 +1,19 @@
 import { Schema, model } from "mongoose";
+import { IBrand } from "../types/mongodb/brand.interface";
 
-const brandSchema = new Schema(
-    {
-        name: {
-            type: String,
-            required: [true, "Brand name is required"]
+const BrandModel = model(
+    "Brand",
+    new Schema<IBrand>(
+        {
+            name: {
+                type: String,
+                required: [true, "Brand name is required"]
+            }
+        },
+        {
+            timestamps: true
         }
-    },
-    {
-        timestamps: true
-    }
+    )
 );
 
-const Brand = model("Brand", brandSchema);
-export default Brand;
+export default BrandModel;

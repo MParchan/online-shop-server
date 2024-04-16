@@ -3,7 +3,7 @@ import User from "../models/usersModel";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import passwordRequiredCharacters from "../middleware/passwordRequiredCharactersHandler";
-import { AuthorizedRequest } from "../types/interfaces/authorizedRequestInterface";
+import { AuthorizedRequest } from "../types/express/authorizedRequest.interface";
 import Role from "../models/rolesModel";
 
 //@desc User registration

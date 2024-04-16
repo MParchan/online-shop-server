@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { Response, NextFunction } from "express";
-import { AuthorizedRequest } from "../types/interfaces/authorizedRequestInterface";
+import { AuthorizedRequest } from "../types/express/authorizedRequest.interface";
 
 const validateToken = async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
     try {

@@ -1,22 +1,25 @@
 import { Schema, model } from "mongoose";
+import { IPropertyType } from "../types/mongodb/propertyType.interface";
 
-const propertyTypeSchema = new Schema(
-    {
-        name: {
-            type: String,
-            required: [true, "PropertyType name is required"]
+const PropertyTypeModel = model(
+    "PropertyType",
+    new Schema<IPropertyType>(
+        {
+            name: {
+                type: String,
+                required: [true, "PropertyType name is required"]
+            },
+
+            subcategory: {
+                type: Schema.Types.ObjectId,
+                ref: "Subcategory",
+                required: [true, "Property type subcategory is required"]
+            }
         },
-
-        subcategory: {
-            type: Schema.Types.ObjectId,
-            ref: "Subcategory",
-            required: [true, "Property type subcategory is required"]
+        {
+            timestamps: true
         }
-    },
-    {
-        timestamps: true
-    }
+    )
 );
 
-const PropertyType = model("PropertyType", propertyTypeSchema);
-export default PropertyType;
+export default PropertyTypeModel;

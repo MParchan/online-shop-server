@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import Category from "../models/categoriesModel";
-import { AuthorizedRequest } from "../types/interfaces/authorizedRequestInterface";
+import { AuthorizedRequest } from "../types/express/authorizedRequest.interface";
 import isAdmin from "../middleware/isAdminHandler";
 import Product from "../models/productsModel";
 

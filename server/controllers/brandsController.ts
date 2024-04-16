@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { Types } from "mongoose";
-import { AuthorizedRequest } from "../types/interfaces/authorizedRequestInterface";
+import { AuthorizedRequest } from "../types/express/authorizedRequest.interface";
 import isAdmin from "../middleware/isAdminHandler";
 import Brand from "../models/brandsModel";
+import { IBrand } from "../types/mongodb/brand.interface";
 
 //@desc Get all brands
 //@route GET /api/<API_VERSION>/brands
@@ -27,13 +28,9 @@ const createBrand = async (req: AuthorizedRequest, res: Response) => {
             res.status(403).json({ message: "Access denied" });
             return;
         }
-        const { name }: { name: string } = req.body;
-        if (!name) {
-            res.status(400).json({ message: "Field name is mandatory" });
-            return;
-        }
-        const brand = await Brand.create({ name });
-        res.status(201).json(brand);
+        const brand: IBrand = req.body;
+        const createdBrand = await Brand.create(brand);
+        res.status(201).json(createdBrand);
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });
@@ -73,17 +70,17 @@ const updateBrand = async (req: AuthorizedRequest, res: Response) => {
             return;
         }
         const id: string = req.params.id;
-        const { name }: { name: string } = req.body;
+        const brand: IBrand = req.body;
         if (!Types.ObjectId.isValid(id)) {
             res.status(400).json({ message: "Invalid id" });
             return;
         }
-        const brand = await Brand.findByIdAndUpdate(id, { name: name });
+        const updatedBrand = await Brand.findByIdAndUpdate(id, brand);
         if (!brand) {
             res.status(404).json({ message: "Brand not found" });
             return;
         }
-        res.status(200).json(brand);
+        res.status(200).json(updatedBrand);
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });

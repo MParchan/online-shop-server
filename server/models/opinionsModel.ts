@@ -1,43 +1,46 @@
 import { Schema, model } from "mongoose";
+import { IOpinion } from "../types/mongodb/opinion.interface";
 
-const opinionSchema = new Schema(
-    {
-        date: {
-            type: Date,
-            required: [true, "Opinion date is required"]
-        },
-
-        rating: {
-            type: Number,
-            validate: {
-                validator: function (value: number) {
-                    return Number.isInteger(value) && value >= 1 && value <= 5;
-                },
-                message: "{VALUE} is not a valid integer between 1 and 5"
+const OpinionModel = model(
+    "Opinion",
+    new Schema<IOpinion>(
+        {
+            date: {
+                type: Date,
+                required: [true, "Opinion date is required"]
             },
-            required: [true, "Opinion raiting is required"]
-        },
 
-        description: {
-            type: String
-        },
+            rating: {
+                type: Number,
+                validate: {
+                    validator: function (value: number) {
+                        return Number.isInteger(value) && value >= 1 && value <= 5;
+                    },
+                    message: "{VALUE} is not a valid integer between 1 and 5"
+                },
+                required: [true, "Opinion raiting is required"]
+            },
 
-        user: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            required: [true, "Opinion user is required"]
-        },
+            description: {
+                type: String
+            },
 
-        product: {
-            type: Schema.Types.ObjectId,
-            ref: "Product",
-            required: [true, "Opinion product is required"]
+            user: {
+                type: Schema.Types.ObjectId,
+                ref: "User",
+                required: [true, "Opinion user is required"]
+            },
+
+            product: {
+                type: Schema.Types.ObjectId,
+                ref: "Product",
+                required: [true, "Opinion product is required"]
+            }
+        },
+        {
+            timestamps: true
         }
-    },
-    {
-        timestamps: true
-    }
+    )
 );
 
-const Opinion = model("Opinion", opinionSchema);
-export default Opinion;
+export default OpinionModel;

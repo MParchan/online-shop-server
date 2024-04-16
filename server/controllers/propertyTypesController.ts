@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import Subcategory from "../models/subcategoriesModel";
 import { Types } from "mongoose";
-import { AuthorizedRequest } from "../types/interfaces/authorizedRequestInterface";
+import { AuthorizedRequest } from "../types/express/authorizedRequest.interface";
 import isAdmin from "../middleware/isAdminHandler";
 import PropertyType from "../models/propertyTypesModel";
 
