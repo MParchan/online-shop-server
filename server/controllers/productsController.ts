@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
-import Category from "../models/categoriesModel";
-import { AuthorizedRequest } from "../types/express/authorizedRequest.interface";
-import isAdmin from "../middleware/isAdminHandler";
 import Product from "../models/productsModel";
+import Property from "../models/propertiesModel";
+import Image from "../models/imagesModel";
+import { IProduct } from "../types/mongodb/product.interface";
+import { IProperty } from "../types/mongodb/property.interface";
+import { IImage } from "../types/mongodb/image.interface";
 
 //@desc Get all products
 //@route GET /api/<API_VERSION>/products
@@ -20,30 +22,55 @@ const getProducts = async (req: Request, res: Response) => {
 //@desc Create new product
 //@route POST /api/<API_VERSION>/products
 //@access private- Admin only
-const createProduct = async (req: AuthorizedRequest, res: Response) => {
+const createProduct = async (req: Request, res: Response) => {
     try {
-        const admin = await isAdmin(req);
-        if (!admin) {
-            res.status(403).json({ message: "Access denied" });
+        const { properties, images, ...product }: { properties?: IProperty[]; images?: IImage[] } & IProduct = req.body;
+
+        const createdProduct = new Product(product);
+        try {
+            await createdProduct.validate();
+        } catch (err) {
+            const error = err as Error;
+            res.status(400).json({ message: error.message });
             return;
         }
-        const {
-            name,
-            description,
-            price,
-            quantity,
-            subcategory,
-            brand
-        }: { name: string; description: string; price: number; quantity: number; subcategory: string; brand: string } =
-            req.body;
-        if (!name || !description || !price || !quantity || !subcategory || !brand) {
-            res.status(400).json({
-                message: "Fields name, description, price, quantity, subcategory and brand is mandatory"
+
+        if (properties && properties.length > 0) {
+            properties.forEach((property) => {
+                property.product = createdProduct._id;
             });
-            return;
+            const createdPropetries = new Property(properties);
+            try {
+                await createdPropetries.validate();
+            } catch (err) {
+                const error = err as Error;
+                res.status(400).json({ message: error.message });
+                return;
+            }
         }
-        const category = await Category.create({ name });
-        res.status(201).json(category);
+
+        if (images && images.length > 0) {
+            const createdImages: IImage[] = [];
+            images.forEach(async (image) => {
+                image.product = createdProduct._id;
+                const createdImage = new Image(image);
+                try {
+                    await createdImage.validate();
+                } catch (err) {
+                    const error = err as Error;
+                    res.status(400).json({ message: error.message });
+                    return;
+                }
+                createdImages.push(createdImage);
+            });
+            if (createdImages.length < images.length) {
+                return;
+            }
+        }
+        const result: { properties?: IProperty[]; images?: IImage[] } & IProduct = createdProduct;
+        result.properties = properties;
+        result.images = images;
+        res.status(201).json(result);
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });

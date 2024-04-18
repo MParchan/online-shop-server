@@ -1,25 +1,23 @@
-import { Schema, model } from "mongoose";
+import { Model, Schema, model } from "mongoose";
 import { IImage } from "../types/mongodb/image.interface";
 
-const ImageModel = model(
-    "Image",
-    new Schema<IImage>(
-        {
-            image: {
-                type: Buffer,
-                required: [true, "Image is required"]
-            },
-
-            product: {
-                type: Schema.Types.ObjectId,
-                ref: "Product",
-                required: [true, "Image product is required"]
-            }
+const imageSchema = new Schema<IImage>(
+    {
+        image: {
+            type: Buffer,
+            required: [true, "Image is required"]
         },
-        {
-            timestamps: true
+
+        product: {
+            type: Schema.Types.ObjectId,
+            ref: "Product",
+            required: [true, "Image product is required"]
         }
-    )
+    },
+    {
+        timestamps: true
+    }
 );
 
-export default ImageModel;
+const Image: Model<IImage> = model<IImage>("Image", imageSchema);
+export default Image;

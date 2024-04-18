@@ -7,10 +7,15 @@ import {
     deleteSubcategory
 } from "../controllers/subcategoriescontroller";
 import validateToken from "../middleware/validateTokenHandler";
+import isAdmin from "../middleware/isAdminHandler";
 
 const router = express.Router();
 
-router.route("/").get(getSubcategories).post(validateToken, createSubcategory);
-router.route("/:id").get(getSubcategory).put(validateToken, updateSubcategory).delete(validateToken, deleteSubcategory);
+router.route("/").get(getSubcategories).post(validateToken, isAdmin, createSubcategory);
+router
+    .route("/:id")
+    .get(getSubcategory)
+    .put(validateToken, isAdmin, updateSubcategory)
+    .delete(validateToken, isAdmin, deleteSubcategory);
 
 export default router;

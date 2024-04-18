@@ -7,10 +7,15 @@ import {
     deleteCategory
 } from "../controllers/categoriesController";
 import validateToken from "../middleware/validateTokenHandler";
+import isAdmin from "../middleware/isAdminHandler";
 
 const router = express.Router();
 
-router.route("/").get(getCategories).post(validateToken, createCategory);
-router.route("/:id").get(getCategory).put(validateToken, updateCategory).delete(validateToken, deleteCategory);
+router.route("/").get(getCategories).post(validateToken, isAdmin, createCategory);
+router
+    .route("/:id")
+    .get(getCategory)
+    .put(validateToken, isAdmin, updateCategory)
+    .delete(validateToken, isAdmin, deleteCategory);
 
 export default router;

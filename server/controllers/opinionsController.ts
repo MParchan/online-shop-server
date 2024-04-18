@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { Types } from "mongoose";
 import { AuthorizedRequest } from "../types/express/authorizedRequest.interface";
-import isAdmin from "../middleware/isAdminHandler";
 import Product from "../models/productsModel";
 import Opinion from "../models/opinionsModel";
 import getUserId from "../middleware/getUserIdHandler";
@@ -49,16 +48,15 @@ const createOpinion = async (req: AuthorizedRequest, res: Response) => {
             return;
         }
 
-        try {
-            const createdOpinion = await Opinion.create(opinion);
-            res.status(201).json(createdOpinion);
-        } catch (err) {
-            const error = err as Error;
-            res.status(400).json({ message: error.message });
-        }
+        const createdOpinion = await Opinion.create(opinion);
+        res.status(201).json(createdOpinion);
     } catch (err) {
         const error = err as Error;
-        res.status(500).json({ message: error.message });
+        if (error.name === "ValidationError") {
+            res.status(400).json({ message: error.message });
+        } else {
+            res.status(500).json({ message: error.message });
+        }
     }
 };
 
@@ -118,16 +116,15 @@ const updateOpinion = async (req: AuthorizedRequest, res: Response) => {
             res.status(401).json({ message: "User is not authorized" });
             return;
         }
-        try {
-            const updatedOpinion = await Opinion.findByIdAndUpdate(id, opinion, { new: true });
-            res.status(200).json(updatedOpinion);
-        } catch (err) {
-            const error = err as Error;
-            res.status(400).json({ message: error.message });
-        }
+        const updatedOpinion = await Opinion.findByIdAndUpdate(id, opinion, { new: true, runValidators: true });
+        res.status(200).json(updatedOpinion);
     } catch (err) {
         const error = err as Error;
-        res.status(500).json({ message: error.message });
+        if (error.name === "ValidationError") {
+            res.status(400).json({ message: error.message });
+        } else {
+            res.status(500).json({ message: error.message });
+        }
     }
 };
 
@@ -136,7 +133,6 @@ const updateOpinion = async (req: AuthorizedRequest, res: Response) => {
 //@access private
 const deleteOpinion = async (req: AuthorizedRequest, res: Response) => {
     try {
-        const admin = await isAdmin(req);
         const user = await getUserId(req);
         const id: string = req.params.id;
         if (!Types.ObjectId.isValid(id)) {
@@ -149,10 +145,8 @@ const deleteOpinion = async (req: AuthorizedRequest, res: Response) => {
             return;
         }
         if (opinion.user !== user) {
-            if (!admin) {
-                res.status(401).json({ message: "User not authorized" });
-                return;
-            }
+            res.status(401).json({ message: "User not authorized" });
+            return;
         }
         await opinion.deleteOne();
 
