@@ -9,4 +9,5 @@ export interface IOrder {
     zipcode: string;
     street: string;
     user: Types.ObjectId;
+    orderProducts: Types.ObjectId[];
 }

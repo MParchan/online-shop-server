@@ -4,7 +4,7 @@ import { IImage } from "../types/mongodb/image.interface";
 const imageSchema = new Schema<IImage>(
     {
         image: {
-            type: Buffer,
+            type: String,
             required: [true, "Image is required"]
         },
 

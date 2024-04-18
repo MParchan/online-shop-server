@@ -7,4 +7,7 @@ export interface IUser {
     firstName?: string;
     lastName?: string;
     role: Types.ObjectId;
+    addresses: Types.ObjectId[];
+    opinions: Types.ObjectId[];
+    orders: Types.ObjectId[];
 }

@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 
 export interface IImage {
-    image: Buffer;
+    image: string;
     product: Types.ObjectId;
 }

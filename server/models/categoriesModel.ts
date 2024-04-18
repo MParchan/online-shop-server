@@ -8,12 +8,8 @@ const categorySchema = new Schema<ICategory>(
             type: String,
             required: [true, "Category name is required"]
         },
-        subcategories: [
-            {
-                type: Schema.Types.ObjectId,
-                ref: "Subcategory"
-            }
-        ]
+
+        subcategories: [{ type: Schema.Types.ObjectId, ref: "Subcategory" }]
     },
     {
         timestamps: true

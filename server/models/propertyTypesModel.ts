@@ -7,6 +7,12 @@ const propertyTypeSchema = new Schema<IPropertyType>(
             type: String,
             required: [true, "PropertyType name is required"]
         },
+        type: {
+            type: String,
+            enum: ["string", "number", "boolean"],
+            default: "string",
+            required: [true, "PropertyType type is required"]
+        },
 
         subcategory: {
             type: Schema.Types.ObjectId,

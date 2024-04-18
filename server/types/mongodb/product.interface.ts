@@ -7,4 +7,7 @@ export interface IProduct {
     quantity: number;
     subcategory: Types.ObjectId;
     brand: Types.ObjectId;
+    images: Types.ObjectId[];
+    opinions: Types.ObjectId[];
+    properties: Types.ObjectId[];
 }
