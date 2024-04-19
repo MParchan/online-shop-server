@@ -11,4 +11,5 @@ ACCESS_TOKEN_SECRET="<ACCESS_TOKEN_SECRET>"
 * run server `npm run start`
 * run server in dev mode `npm run dev`
 ## Database schema
-![Db-diagram](https://github.com/MParchan/online-shop-server/assets/85680066/d3064a6a-8f17-4ca2-8d3e-8758154b86dc)
+![Db-diagram](https://github.com/MParchan/online-shop-server/assets/85680066/ac437ae9-0c89-487c-9a57-d1db0a3fbca1)
+
