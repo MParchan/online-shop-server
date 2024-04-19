@@ -9,5 +9,5 @@ export interface IProduct {
     brand: Types.ObjectId;
     images: Types.ObjectId[];
     opinions: Types.ObjectId[];
-    properties: Types.ObjectId[];
+    productProperties: Types.ObjectId[];
 }

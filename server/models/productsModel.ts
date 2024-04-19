@@ -2,7 +2,7 @@ import { Model, Schema, model } from "mongoose";
 import { IProduct } from "../types/mongodb/product.interface";
 import Image from "./imagesModel";
 import Opinion from "./opinionsModel";
-import Property from "./propertiesModel";
+import ProductProperty from "./productPropertiesModel";
 
 const productSchema = new Schema<IProduct>(
     {
@@ -47,7 +47,7 @@ const productSchema = new Schema<IProduct>(
 
         images: [{ type: Schema.Types.ObjectId, ref: "Image" }],
         opinions: [{ type: Schema.Types.ObjectId, ref: "Opinion" }],
-        properties: [{ type: Schema.Types.ObjectId, ref: "Property" }]
+        productProperties: [{ type: Schema.Types.ObjectId, ref: "ProductProperty" }]
     },
     {
         timestamps: true
@@ -60,7 +60,7 @@ productSchema.pre("findOneAndDelete", async function (next) {
         await Promise.all([
             Image.deleteMany({ product: productId }),
             Opinion.deleteMany({ product: productId }),
-            Property.deleteMany({ product: productId })
+            ProductProperty.deleteMany({ product: productId })
         ]);
     } catch (err) {
         const error = err as Error;

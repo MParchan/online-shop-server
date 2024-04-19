@@ -8,12 +8,6 @@ const propertySchema = new Schema<IProperty>(
             required: [true, "Property value is required"]
         },
 
-        product: {
-            type: Schema.Types.ObjectId,
-            ref: "Product",
-            required: [true, "Property product is required"]
-        },
-
         propertyType: {
             type: Schema.Types.ObjectId,
             ref: "PropertyType",
