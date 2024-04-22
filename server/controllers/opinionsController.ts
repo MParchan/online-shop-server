@@ -11,13 +11,16 @@ import { IOpinion } from "../types/mongodb/opinion.interface";
 //@access public
 const getOpinions = async (req: Request, res: Response) => {
     try {
-        const productId = req.body.productId;
-        const product = await Product.findById(productId);
-        if (!product) {
-            res.status(404).json({ message: "Product not found" });
-            return;
+        const product = String(req.query.product);
+        const queryConditions: { product?: string } = {};
+        if (product !== "undefined") {
+            if (!Types.ObjectId.isValid(product)) {
+                return res.status(400).json({ message: "Invalid product id" });
+            }
+            queryConditions.product = product;
         }
-        const opinions = await Opinion.findById({ product: productId });
+
+        const opinions = await Opinion.find(queryConditions);
         res.status(200).json(opinions);
     } catch (err) {
         const error = err as Error;

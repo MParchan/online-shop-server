@@ -12,6 +12,11 @@ import { IUser } from "../types/mongodb/user.interface";
 //@access public
 const registerUser = async (req: Request, res: Response) => {
     try {
+        const existingUser = await User.findOne({ email: req.body.email });
+        if (existingUser) {
+            res.status(409).json({ message: "User with this email already exists" });
+            return;
+        }
         const {
             confirmPassword,
             ...user
@@ -19,11 +24,6 @@ const registerUser = async (req: Request, res: Response) => {
             confirmPassword: string;
         } & IUser = req.body;
 
-        const existingUser = await User.findOne({ email: user.email });
-        if (existingUser) {
-            res.status(409).json({ message: "User with this email already exists" });
-            return;
-        }
         if (user.password !== confirmPassword) {
             res.status(400).json({ message: "Password and confirm password is not the same" });
             return;
@@ -39,23 +39,23 @@ const registerUser = async (req: Request, res: Response) => {
             });
             return;
         }
-        user.password = await bcrypt.hash(user.password, 10);
+        const salt = await bcrypt.genSalt();
+        user.password = await bcrypt.hash(user.password, salt);
         const role = await Role.findOne({ name: "User" }).exec();
         if (!role) {
             res.status(400).json({ message: "Role not found" });
             return;
         }
         user.role = role._id;
-        try {
-            await User.create(user);
-            res.status(200).json({ message: "User register succesfully" });
-        } catch (err) {
-            const error = err as Error;
-            res.status(400).json({ message: error.message });
-        }
+        await User.create(user);
+        res.status(200).json({ message: "User register succesfully" });
     } catch (err) {
         const error = err as Error;
-        res.status(500).json({ message: error.message });
+        if (error.name === "ValidationError") {
+            res.status(400).json({ message: error.message });
+        } else {
+            res.status(500).json({ message: error.message });
+        }
     }
 };
 

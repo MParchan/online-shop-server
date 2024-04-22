@@ -10,8 +10,16 @@ import { IPropertyType } from "../types/mongodb/propertyType.interface";
 //@access public
 const getPropertyTypes = async (req: Request, res: Response) => {
     try {
-        const subcategory: string = req.body.subcategory;
-        const propertyTypes = await Subcategory.find({ subcategory: subcategory });
+        const subcategory: string = String(req.query.subcategory);
+        const queryConditions: { subcategory?: string } = {};
+        if (subcategory !== "undefined") {
+            if (!Types.ObjectId.isValid(subcategory)) {
+                return res.status(400).json({ message: "Invalid subcategory id" });
+            }
+            queryConditions.subcategory = subcategory;
+        }
+
+        const propertyTypes = await PropertyType.find(queryConditions);
         res.status(200).json(propertyTypes);
     } catch (err) {
         const error = err as Error;

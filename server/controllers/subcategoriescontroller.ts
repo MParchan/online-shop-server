@@ -9,7 +9,16 @@ import { ISubcategory } from "../types/mongodb/subcategory.interface";
 //@access public
 const getSubcategories = async (req: Request, res: Response) => {
     try {
-        const subcategories = await Subcategory.find().populate("category");
+        const category: string = String(req.query.category);
+        const queryConditions: { category?: string } = {};
+        if (category !== "undefined") {
+            if (!Types.ObjectId.isValid(category)) {
+                return res.status(400).json({ message: "Invalid category id" });
+            }
+            queryConditions.category = category;
+        }
+
+        const subcategories = await Subcategory.find(queryConditions);
         res.status(200).json(subcategories);
     } catch (err) {
         const error = err as Error;

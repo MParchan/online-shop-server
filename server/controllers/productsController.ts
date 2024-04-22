@@ -5,13 +5,37 @@ import Image from "../models/imagesModel";
 import { IProduct } from "../types/mongodb/product.interface";
 import { IProperty } from "../types/mongodb/property.interface";
 import { IImage } from "../types/mongodb/image.interface";
+import { Types } from "mongoose";
 
 //@desc Get all products
 //@route GET /api/<API_VERSION>/products
 //@access public
 const getProducts = async (req: Request, res: Response) => {
     try {
-        const products = await Product.find();
+        const subcategory: string = String(req.query.subcategory);
+        const brand: string = String(req.query.brand);
+        const page: number = Number(req.query.page) || 1;
+        const limit: number = Number(req.query.limit) || 20;
+        const skip: number = (page - 1) * limit;
+        const sortField: string = String(req.query.sortField || "createdAt");
+        const sortOrder: number = req.query.sortOrder === "desc" ? -1 : 1;
+
+        const queryOptions = { skip, limit, sort: { [sortField]: sortOrder } };
+        const queryConditions: { subcategory?: string; brand?: string } = {};
+        if (subcategory !== "undefined") {
+            if (!Types.ObjectId.isValid(subcategory)) {
+                return res.status(400).json({ message: "Invalid subcategory id" });
+            }
+            queryConditions.subcategory = subcategory;
+        }
+        if (brand !== "undefined") {
+            if (!Types.ObjectId.isValid(brand)) {
+                return res.status(400).json({ message: "Invalid brand id" });
+            }
+            queryConditions.brand = brand;
+        }
+
+        const products = await Product.find(queryConditions, null, queryOptions);
         res.status(200).json(products);
     } catch (err) {
         const error = err as Error;
@@ -67,10 +91,8 @@ const createProduct = async (req: Request, res: Response) => {
                 return;
             }
         }
-        const result: { properties?: IProperty[]; images?: IImage[] } & IProduct = createdProduct;
-        result.properties = properties;
-        result.images = images;
-        res.status(201).json(result);
+
+        res.status(201).json(createdProduct);
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });
