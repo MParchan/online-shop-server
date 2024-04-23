@@ -1,6 +1,6 @@
-import { Types } from "mongoose";
+import { Document, Types } from "mongoose";
 
-export interface IOrder {
+export interface IOrder extends Document {
     date: Date;
     status: string;
     paymentMethod: string;

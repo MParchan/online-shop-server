@@ -1,6 +1,6 @@
-import { Types } from "mongoose";
+import { Document, Types } from "mongoose";
 
-export interface IAddress {
+export interface IAddress extends Document {
     name: string;
     country: string;
     city: string;

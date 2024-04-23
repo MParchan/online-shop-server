@@ -1,6 +1,6 @@
-import { Types } from "mongoose";
+import { Document, Types } from "mongoose";
 
-export interface IProductProperty {
+export interface IProductProperty extends Document {
     product: Types.ObjectId;
     property: Types.ObjectId;
 }

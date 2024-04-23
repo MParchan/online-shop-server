@@ -1,6 +1,6 @@
-import { Types } from "mongoose";
+import { Document, Types } from "mongoose";
 
-export interface IOrderProduct {
+export interface IOrderProduct extends Document {
     quantity: number;
     order: Types.ObjectId;
     product: Types.ObjectId;

@@ -1,6 +1,6 @@
-import { Types } from "mongoose";
+import { Document, Types } from "mongoose";
 
-export interface IImage {
+export interface IImage extends Document {
     image: string;
     product: Types.ObjectId;
 }

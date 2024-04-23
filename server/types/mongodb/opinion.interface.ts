@@ -1,6 +1,6 @@
-import { Types } from "mongoose";
+import { Document, Types } from "mongoose";
 
-export interface IOpinion {
+export interface IOpinion extends Document {
     date: Date;
     rating: number;
     description?: string;
