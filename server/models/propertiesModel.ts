@@ -33,5 +33,17 @@ propertySchema.pre("findOneAndDelete", async function (next) {
     next();
 });
 
+propertySchema.pre("deleteMany", async function (next) {
+    try {
+        const properties = await this.model.find(this.getFilter());
+        const propertyIds = properties.map((property) => property._id);
+        await ProductProperty.deleteMany({ property: { $in: propertyIds } });
+    } catch (err) {
+        const error = err as Error;
+        next(error);
+    }
+    next();
+});
+
 const Property: Model<IProperty> = model<IProperty>("Property", propertySchema);
 export default Property;

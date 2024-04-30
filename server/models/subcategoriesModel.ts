@@ -33,5 +33,17 @@ subcategorySchema.pre("findOneAndDelete", async function (next) {
     next();
 });
 
+subcategorySchema.pre("deleteMany", async function (next) {
+    try {
+        const subcategories = await this.model.find(this.getFilter());
+        const subcategoryIds = subcategories.map((subcategory) => subcategory._id);
+        await PropertyType.deleteMany({ subcategory: { $in: subcategoryIds } });
+    } catch (err) {
+        const error = err as Error;
+        next(error);
+    }
+    next();
+});
+
 const Subcategory: Model<ISubcategory> = model<ISubcategory>("Subcategory", subcategorySchema);
 export default Subcategory;

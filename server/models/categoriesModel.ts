@@ -27,5 +27,17 @@ categorySchema.pre("findOneAndDelete", async function (next) {
     next();
 });
 
+categorySchema.pre("deleteMany", async function (next) {
+    try {
+        const categories = await this.model.find(this.getFilter());
+        const categoryIds = categories.map((category) => category._id);
+        await Subcategory.deleteMany({ category: { $in: categoryIds } });
+    } catch (err) {
+        const error = err as Error;
+        next(error);
+    }
+    next();
+});
+
 const Category: Model<ICategory> = model<ICategory>("Category", categorySchema);
 export default Category;

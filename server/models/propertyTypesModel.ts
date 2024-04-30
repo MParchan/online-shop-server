@@ -39,5 +39,17 @@ propertyTypeSchema.pre("findOneAndDelete", async function (next) {
     next();
 });
 
+propertyTypeSchema.pre("deleteMany", async function (next) {
+    try {
+        const propertyTypes = await this.model.find(this.getFilter());
+        const propertyTypeIds = propertyTypes.map((propertyType) => propertyType._id);
+        await Property.deleteMany({ propertyType: { $in: propertyTypeIds } });
+    } catch (err) {
+        const error = err as Error;
+        next(error);
+    }
+    next();
+});
+
 const PropertyType: Model<IPropertyType> = model<IPropertyType>("PropertyType", propertyTypeSchema);
 export default PropertyType;

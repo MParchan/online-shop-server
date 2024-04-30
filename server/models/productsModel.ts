@@ -69,5 +69,21 @@ productSchema.pre("findOneAndDelete", async function (next) {
     next();
 });
 
+productSchema.pre("deleteMany", async function (next) {
+    try {
+        const products = await this.model.find(this.getFilter());
+        const productIds = products.map((product) => product._id);
+        await Promise.all([
+            Image.deleteMany({ product: { $in: productIds } }),
+            Opinion.deleteMany({ product: { $in: productIds } }),
+            ProductProperty.deleteMany({ product: { $in: productIds } })
+        ]);
+    } catch (err) {
+        const error = err as Error;
+        next(error);
+    }
+    next();
+});
+
 const Product: Model<IProduct> = model<IProduct>("Product", productSchema);
 export default Product;
