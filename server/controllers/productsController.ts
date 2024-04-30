@@ -3,9 +3,11 @@ import Product from "../models/productsModel";
 import Property from "../models/propertiesModel";
 import Image from "../models/imagesModel";
 import { IProduct } from "../types/mongodb/product.interface";
-import { IProperty } from "../types/mongodb/property.interface";
 import { IImage } from "../types/mongodb/image.interface";
 import { Types } from "mongoose";
+import { IProperty } from "../types/mongodb/property.interface";
+import ProductProperty from "../models/productPropertiesModel";
+import { IProductProperty } from "../types/mongodb/productProperty.interface";
 
 //@desc Get all products
 //@route GET /api/<API_VERSION>/products
@@ -50,52 +52,71 @@ const createProduct = async (req: Request, res: Response) => {
     try {
         const { properties, images, ...product }: { properties?: IProperty[]; images?: IImage[] } & IProduct = req.body;
 
-        const createdProduct = new Product(product);
-        try {
-            await createdProduct.validate();
-        } catch (err) {
-            const error = err as Error;
-            res.status(400).json({ message: error.message });
-            return;
-        }
+        const productInstance = new Product(product);
+        await productInstance.validate();
 
-        if (properties && properties.length > 0) {
-            properties.forEach((property) => {
-                property.product = createdProduct._id;
-            });
-            const createdPropetries = new Property(properties);
-            try {
-                await createdPropetries.validate();
-            } catch (err) {
-                const error = err as Error;
-                res.status(400).json({ message: error.message });
-                return;
-            }
-        }
-
-        if (images && images.length > 0) {
-            const createdImages: IImage[] = [];
-            images.forEach(async (image) => {
-                image.product = createdProduct._id;
-                const createdImage = new Image(image);
-                try {
-                    await createdImage.validate();
-                } catch (err) {
-                    const error = err as Error;
-                    res.status(400).json({ message: error.message });
-                    return;
+        const propertyInstances: IProperty[] = [];
+        const productPropertyInstances: IProductProperty[] = [];
+        let propertyPromises;
+        if (Array.isArray(properties)) {
+            propertyPromises = properties.map(async (property) => {
+                const existingProperty = await Property.findOne({
+                    value: property.value,
+                    propertyType: property.propertyType
+                });
+                let productpropertyInstace;
+                if (existingProperty) {
+                    productpropertyInstace = new ProductProperty({
+                        product: productInstance._id,
+                        property: existingProperty._id
+                    });
+                    productPropertyInstances.push(productpropertyInstace);
+                    existingProperty.productProperties.push(productpropertyInstace._id);
+                    await existingProperty.save();
+                } else {
+                    const propertyInstance = new Property(property);
+                    await propertyInstance.validate();
+                    productpropertyInstace = new ProductProperty({
+                        product: productInstance._id,
+                        property: propertyInstance._id
+                    });
+                    propertyInstance.productProperties.push(productpropertyInstace._id);
+                    propertyInstances.push(propertyInstance);
                 }
-                createdImages.push(createdImage);
+                productPropertyInstances.push(productpropertyInstace);
+                productInstance.productProperties.push(productpropertyInstace._id);
             });
-            if (createdImages.length < images.length) {
-                return;
-            }
         }
 
-        res.status(201).json(createdProduct);
+        const imageInstances: IImage[] = [];
+        let imagePromises;
+        if (Array.isArray(images)) {
+            imagePromises = images.map(async (image) => {
+                const modifiedImage = { ...image, product: productInstance._id };
+                const imageInstance = new Image(modifiedImage);
+                await imageInstance.validate();
+                imageInstances.push(imageInstance);
+                productInstance.images.push(imageInstance._id);
+            });
+        }
+
+        await Promise.all([
+            imagePromises,
+            propertyPromises,
+            productInstance.save(),
+            Image.insertMany(imageInstances),
+            Property.insertMany(propertyInstances),
+            ProductProperty.insertMany(productPropertyInstances)
+        ]);
+
+        res.status(201).json(productInstance);
     } catch (err) {
         const error = err as Error;
-        res.status(500).json({ message: error.message });
+        if (error.name === "ValidationError") {
+            res.status(400).json({ message: error.message });
+        } else {
+            res.status(500).json({ message: error.message });
+        }
     }
 };
 
