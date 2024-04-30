@@ -131,7 +131,7 @@ const deleteSubcategory = async (req: Request, res: Response) => {
             res.status(404).json({ message: "Invalid id" });
             return;
         }
-        const subcategory = await Subcategory.findByIdAndDelete(id);
+        const subcategory = await Subcategory.findOneAndDelete({ _id: id });
         if (!subcategory) {
             res.status(404).json({ message: "Subcategory not found" });
             return;

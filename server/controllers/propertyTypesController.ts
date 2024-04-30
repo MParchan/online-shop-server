@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import Subcategory from "../models/subcategoriesModel";
 import { Types } from "mongoose";
-import { AuthorizedRequest } from "../types/express/authorizedRequest.interface";
 import PropertyType from "../models/propertyTypesModel";
 import { IPropertyType } from "../types/mongodb/propertyType.interface";
 
@@ -44,6 +43,8 @@ const createPropertyType = async (req: Request, res: Response) => {
             return;
         }
         const createdPropertyType = await PropertyType.create(propertyType);
+        existingSubcategory.propertyTypes.push(createdPropertyType._id);
+        await existingSubcategory.save();
         res.status(201).json(createdPropertyType);
     } catch (err) {
         const error = err as Error;
@@ -65,7 +66,7 @@ const getPropertyType = async (req: Request, res: Response) => {
             res.status(404).json({ message: "Invalid id" });
             return;
         }
-        const propertyType = await Subcategory.findById(id).populate("subcategory");
+        const propertyType = await PropertyType.findById(id).populate("subcategory");
         if (!propertyType) {
             res.status(404).json({ message: "Property type not found" });
             return;
@@ -80,7 +81,7 @@ const getPropertyType = async (req: Request, res: Response) => {
 //@desc Update property type
 //@route PUT /api/<API_VERSION>/property-types/:id
 //@access private - Admin only
-const updatePropertyType = async (req: AuthorizedRequest, res: Response) => {
+const updatePropertyType = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
         const propertyType: IPropertyType = req.body;
@@ -100,7 +101,7 @@ const updatePropertyType = async (req: AuthorizedRequest, res: Response) => {
                 return;
             }
         }
-        const updatedPropertyType = await Subcategory.findByIdAndUpdate(id, propertyType, {
+        const updatedPropertyType = await PropertyType.findByIdAndUpdate(id, propertyType, {
             new: true,
             runValidators: true
         });
@@ -122,14 +123,14 @@ const updatePropertyType = async (req: AuthorizedRequest, res: Response) => {
 //@desc Delete property type
 //@route DELETE /api/<API_VERSION>/property-types/:id
 //@access private - Admin only
-const deletePropertyType = async (req: AuthorizedRequest, res: Response) => {
+const deletePropertyType = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
         if (!Types.ObjectId.isValid(id)) {
             res.status(404).json({ message: "Invalid id" });
             return;
         }
-        const propertyType = await PropertyType.findByIdAndDelete(id);
+        const propertyType = await PropertyType.findOneAndDelete({ _id: id });
         if (!propertyType) {
             res.status(404).json({ message: "Property type not found" });
             return;

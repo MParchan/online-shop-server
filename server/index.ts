@@ -7,6 +7,7 @@ import categoriesRoutes from "./routes/categoriesRoute";
 import subcategoriesRoutes from "./routes/subcategoriesRoute";
 import brandsRoute from "./routes/brandsRoute";
 import propertyTypesRoute from "./routes/propertyTypesRoute";
+import propertiesRoute from "./routes/propertiesRoute";
 import productsRoute from "./routes/productsRoute";
 import opinionsRoute from "./routes/opinionsRoute";
 
@@ -23,7 +24,8 @@ app.use(`/api/${apiVersion}/roles`, rolesRoute);
 app.use(`/api/${apiVersion}/categories`, categoriesRoutes);
 app.use(`/api/${apiVersion}/subcategories`, subcategoriesRoutes);
 app.use(`/api/${apiVersion}/brands`, brandsRoute);
-app.use(`/api/${apiVersion}/propertyTypes`, propertyTypesRoute);
+app.use(`/api/${apiVersion}/property-types`, propertyTypesRoute);
+app.use(`/api/${apiVersion}/properties`, propertiesRoute);
 app.use(`/api/${apiVersion}/products`, productsRoute);
 app.use(`/api/${apiVersion}/opinions`, opinionsRoute);
 
