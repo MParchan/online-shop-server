@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { Types } from "mongoose";
 import Role from "../models/rolesModel";
 import { IRole } from "../types/mongodb/role.interface";
 
@@ -40,10 +39,6 @@ const createRole = async (req: Request, res: Response) => {
 const getRole = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
         const role = await Role.findById(id);
         if (!role) {
             res.status(404).json({ message: "Role not found" });
@@ -63,10 +58,6 @@ const updateRole = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
         const role: IRole = req.body;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
         const updatedRole = await Role.findByIdAndUpdate(id, role, { new: true, runValidators: true });
         if (!updatedRole) {
             res.status(404).json({ message: "Role not found" });
@@ -89,10 +80,6 @@ const updateRole = async (req: Request, res: Response) => {
 const deleteRole = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
         const role = await Role.findByIdAndDelete(id);
         if (!role) {
             res.status(404).json({ message: "Role not found" });

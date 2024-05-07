@@ -7,10 +7,15 @@ import {
     updateOpinion,
     deleteOpinion
 } from "../controllers/opinionsController";
+import validateId from "../middleware/validateIdHandler";
 
 const router = express.Router();
 
 router.route("/").get(getOpinions).post(validateToken, createOpinion);
-router.route("/:id").get(getOpinion).put(validateToken, updateOpinion).delete(validateToken, deleteOpinion);
+router
+    .route("/:id")
+    .get(validateId, getOpinion)
+    .put(validateId, validateToken, updateOpinion)
+    .delete(validateId, validateToken, deleteOpinion);
 
 export default router;

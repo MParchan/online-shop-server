@@ -8,14 +8,15 @@ import {
     updateProperty,
     deleteProperty
 } from "../controllers/propertyController";
+import validateId from "../middleware/validateIdHandler";
 
 const router = express.Router();
 
 router.route("/").get(getProperties).post(validateToken, isAdmin, createProperty);
 router
     .route("/:id")
-    .get(getProperty)
-    .put(validateToken, isAdmin, updateProperty)
-    .delete(validateToken, isAdmin, deleteProperty);
+    .get(validateId, getProperty)
+    .put(validateId, validateToken, isAdmin, updateProperty)
+    .delete(validateId, validateToken, isAdmin, deleteProperty);
 
 export default router;

@@ -69,10 +69,6 @@ const createOpinion = async (req: AuthorizedRequest, res: Response) => {
 const getOpinion = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
         const opinion = await Opinion.findById(id);
         if (!opinion) {
             res.status(404).json({ message: "Opinion not found" });
@@ -93,10 +89,6 @@ const updateOpinion = async (req: AuthorizedRequest, res: Response) => {
         const user = await getUserId(req);
         const id: string = req.params.id;
         const opinion: IOpinion = req.body;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
 
         if (opinion.product) {
             if (!Types.ObjectId.isValid(opinion.product)) {
@@ -138,10 +130,7 @@ const deleteOpinion = async (req: AuthorizedRequest, res: Response) => {
     try {
         const user = await getUserId(req);
         const id: string = req.params.id;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
+
         const opinion = await Opinion.findById(id);
         if (!opinion) {
             res.status(404).json({ message: "Opinion not found" });

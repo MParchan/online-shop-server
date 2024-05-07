@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { Types } from "mongoose";
 import Brand from "../models/brandsModel";
 import { IBrand } from "../types/mongodb/brand.interface";
 
@@ -40,10 +39,6 @@ const createBrand = async (req: Request, res: Response) => {
 const getBrand = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
         const brand = await Brand.findById(id);
         if (!brand) {
             res.status(404).json({ message: "Brand not found" });
@@ -63,10 +58,6 @@ const updateBrand = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
         const brand: IBrand = req.body;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
 
         const updatedBrand = await Brand.findByIdAndUpdate(id, brand, { new: true, runValidators: true });
         if (!brand) {
@@ -90,10 +81,6 @@ const updateBrand = async (req: Request, res: Response) => {
 const deleteBrand = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
         const brand = await Brand.findByIdAndDelete(id);
         if (!brand) {
             res.status(404).json({ message: "Brand not found" });

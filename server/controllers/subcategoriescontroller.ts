@@ -63,10 +63,6 @@ const createSubcategory = async (req: Request, res: Response) => {
 const getSubcategory = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
         const subcategory = await Subcategory.findById(id).populate("category");
         if (!subcategory) {
             res.status(404).json({ message: "Subcategory not found" });
@@ -86,10 +82,6 @@ const updateSubcategory = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
         const subcategory: ISubcategory = req.body;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid id" });
-            return;
-        }
 
         if (subcategory.category) {
             if (!Types.ObjectId.isValid(subcategory.category)) {
@@ -127,10 +119,6 @@ const updateSubcategory = async (req: Request, res: Response) => {
 const deleteSubcategory = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
         const subcategory = await Subcategory.findOneAndDelete({ _id: id });
         if (!subcategory) {
             res.status(404).json({ message: "Subcategory not found" });

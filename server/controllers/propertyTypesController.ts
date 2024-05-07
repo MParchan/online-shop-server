@@ -62,10 +62,6 @@ const createPropertyType = async (req: Request, res: Response) => {
 const getPropertyType = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
         const propertyType = await PropertyType.findById(id).populate("subcategory");
         if (!propertyType) {
             res.status(404).json({ message: "Property type not found" });
@@ -85,10 +81,6 @@ const updatePropertyType = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
         const propertyType: IPropertyType = req.body;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid id" });
-            return;
-        }
 
         if (propertyType.subcategory) {
             if (!Types.ObjectId.isValid(propertyType.subcategory)) {
@@ -126,10 +118,6 @@ const updatePropertyType = async (req: Request, res: Response) => {
 const deletePropertyType = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
         const propertyType = await PropertyType.findOneAndDelete({ _id: id });
         if (!propertyType) {
             res.status(404).json({ message: "Property type not found" });

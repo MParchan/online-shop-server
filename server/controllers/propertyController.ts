@@ -62,10 +62,6 @@ const createProperty = async (req: Request, res: Response) => {
 const getProperty = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
         const property = await Property.findById(id).populate("propertyType");
         if (!property) {
             res.status(404).json({ message: "Property not found" });
@@ -85,10 +81,6 @@ const updateProperty = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
         const property: IProperty = req.body;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(400).json({ message: "Invalid id" });
-            return;
-        }
 
         if (property.propertyType) {
             if (!Types.ObjectId.isValid(property.propertyType)) {
@@ -126,10 +118,6 @@ const updateProperty = async (req: Request, res: Response) => {
 const deleteProperty = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
         const property = await Property.findOneAndDelete({ _id: id });
         if (!property) {
             res.status(404).json({ message: "Property not found" });

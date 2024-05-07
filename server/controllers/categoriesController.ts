@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import Category from "../models/categoriesModel";
-import { Types } from "mongoose";
 import { ICategory } from "../types/mongodb/category.interface";
 
 //@desc Get all categories
@@ -40,10 +39,6 @@ const createCategory = async (req: Request, res: Response) => {
 const getCategory = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
         const category = await Category.findById(id).populate("subcategories");
         if (!category) {
             res.status(404).json({ message: "Category not found" });
@@ -63,10 +58,7 @@ const updateCategory = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
         const category: ICategory = req.body;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
+
         const updatedCategory = await Category.findByIdAndUpdate(id, category, { new: true, runValidators: true });
         if (!updatedCategory) {
             res.status(404).json({ message: "Category not found" });
@@ -89,10 +81,6 @@ const updateCategory = async (req: Request, res: Response) => {
 const deleteCategory = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        if (!Types.ObjectId.isValid(id)) {
-            res.status(404).json({ message: "Invalid id" });
-            return;
-        }
         const category = await Category.findOneAndDelete({ _id: id });
         if (!category) {
             res.status(404).json({ message: "Category not found" });
