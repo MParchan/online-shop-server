@@ -8,6 +8,8 @@ import { Types } from "mongoose";
 import { IProperty } from "../types/mongodb/property.interface";
 import ProductProperty from "../models/productPropertiesModel";
 import { IProductProperty } from "../types/mongodb/productProperty.interface";
+import Subcategory from "../models/subcategoriesModel";
+import Brand from "../models/brandsModel";
 
 //@desc Get all products
 //@route GET /api/<API_VERSION>/products
@@ -52,6 +54,25 @@ const createProduct = async (req: Request, res: Response) => {
     try {
         const { properties, images, ...product }: { properties?: IProperty[]; images?: IImage[] } & IProduct = req.body;
 
+        if (!Types.ObjectId.isValid(product.subcategory)) {
+            res.status(400).json({ message: "Invalid subcategory id" });
+            return;
+        }
+        if (!Types.ObjectId.isValid(product.brand)) {
+            res.status(400).json({ message: "Invalid brand id" });
+            return;
+        }
+        const existingSubcategory = await Subcategory.findById(product.subcategory);
+        if (!existingSubcategory) {
+            res.status(404).json({ message: "Subcategory not found" });
+            return;
+        }
+        const existingBrand = await Brand.findById(product.brand);
+        if (!existingBrand) {
+            res.status(404).json({ message: "Brand not found" });
+            return;
+        }
+
         const productInstance = new Product(product);
         await productInstance.validate();
 
@@ -64,27 +85,27 @@ const createProduct = async (req: Request, res: Response) => {
                     value: property.value,
                     propertyType: property.propertyType
                 });
-                let productpropertyInstace;
+                let productPropertyInstace;
                 if (existingProperty) {
-                    productpropertyInstace = new ProductProperty({
+                    productPropertyInstace = new ProductProperty({
                         product: productInstance._id,
                         property: existingProperty._id
                     });
-                    productPropertyInstances.push(productpropertyInstace);
-                    existingProperty.productProperties.push(productpropertyInstace._id);
+                    productPropertyInstances.push(productPropertyInstace);
+                    existingProperty.productProperties.push(productPropertyInstace._id);
                     await existingProperty.save();
                 } else {
                     const propertyInstance = new Property(property);
                     await propertyInstance.validate();
-                    productpropertyInstace = new ProductProperty({
+                    productPropertyInstace = new ProductProperty({
                         product: productInstance._id,
                         property: propertyInstance._id
                     });
-                    propertyInstance.productProperties.push(productpropertyInstace._id);
+                    propertyInstance.productProperties.push(productPropertyInstace._id);
                     propertyInstances.push(propertyInstance);
                 }
-                productPropertyInstances.push(productpropertyInstace);
-                productInstance.productProperties.push(productpropertyInstace._id);
+                productPropertyInstances.push(productPropertyInstace);
+                productInstance.productProperties.push(productPropertyInstace._id);
             });
         }
 
@@ -100,14 +121,11 @@ const createProduct = async (req: Request, res: Response) => {
             });
         }
 
-        await Promise.all([
-            imagePromises,
-            propertyPromises,
-            productInstance.save(),
-            Image.insertMany(imageInstances),
-            Property.insertMany(propertyInstances),
-            ProductProperty.insertMany(productPropertyInstances)
-        ]);
+        await Promise.all([propertyPromises, imagePromises]);
+        await Image.insertMany(imageInstances);
+        await Property.insertMany(propertyInstances);
+        await ProductProperty.insertMany(productPropertyInstances);
+        await productInstance.save();
 
         res.status(201).json(productInstance);
     } catch (err) {
@@ -120,4 +138,100 @@ const createProduct = async (req: Request, res: Response) => {
     }
 };
 
-export { getProducts, createProduct };
+//@desc Get product
+//@route GET /api/<API_VERSION>/products/:id
+//@access public
+const getProduct = async (req: Request, res: Response) => {
+    try {
+        const id: string = req.params.id;
+        const product = await Product.findById(id)
+            .populate({
+                path: "subcategory",
+                select: "name",
+                populate: {
+                    path: "category",
+                    select: "name"
+                }
+            })
+            .populate({
+                path: "brand",
+                select: "name"
+            })
+            .populate({
+                path: "images",
+                select: "image"
+            })
+            .populate({
+                path: "opinions",
+                select: "date rating description",
+                populate: {
+                    path: "user",
+                    select: "firstName"
+                }
+            })
+            .populate({
+                path: "productProperties",
+                select: "property",
+                populate: {
+                    path: "property",
+                    select: "value",
+                    populate: {
+                        path: "propertyType",
+                        select: "name"
+                    }
+                }
+            });
+        if (!product) {
+            res.status(404).json({ message: "Product not found" });
+            return;
+        }
+        res.status(200).json(product);
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ message: error.message });
+    }
+};
+
+//@desc Update product
+//@route PUT /api/<API_VERSION>/products/:id
+//@access private - Admin only
+const updateProduct = async (req: Request, res: Response) => {
+    try {
+        const id: string = req.params.id;
+        const product: IProduct = req.body;
+
+        const updatedproduct = await Product.findByIdAndUpdate(id, product, { new: true, runValidators: true });
+        if (!product) {
+            res.status(404).json({ message: "Product not found" });
+            return;
+        }
+        res.status(200).json(updatedproduct);
+    } catch (err) {
+        const error = err as Error;
+        if (error.name === "ValidationError") {
+            res.status(400).json({ message: error.message });
+        } else {
+            res.status(500).json({ message: error.message });
+        }
+    }
+};
+
+//@desc Delete product
+//@route DELETE /api/<API_VERSION>/products/:id
+//@access private - Admin only
+const deleteProduct = async (req: Request, res: Response) => {
+    try {
+        const id: string = req.params.id;
+        const category = await Product.findOneAndDelete({ _id: id });
+        if (!category) {
+            res.status(404).json({ message: "Product not found" });
+            return;
+        }
+        res.status(204).json();
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export { getProducts, createProduct, getProduct, updateProduct, deleteProduct };
