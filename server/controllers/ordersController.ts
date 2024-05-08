@@ -68,6 +68,7 @@ const createOrder = async (req: AuthorizedRequest, res: Response) => {
                     await Product.findByIdAndUpdate(orderProduct.product, {
                         $inc: { quantity: -orderProduct.quantity }
                     });
+                    orderInstance.orderProducts.push(orderProductInstance._id);
                 })
             );
             await orderInstance.save();
