@@ -1,7 +1,8 @@
 import { AuthorizedRequest } from "../types/express/authorizedRequest.interface";
 import User from "../models/usersModel";
+import { Types } from "mongoose";
 
-const getUserId = async (req: AuthorizedRequest) => {
+const getUserId = async (req: AuthorizedRequest): Promise<Types.ObjectId | undefined> => {
     const user = req.user;
     if (!user) {
         return;

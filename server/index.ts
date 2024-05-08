@@ -10,6 +10,7 @@ import propertyTypesRoute from "./routes/propertyTypesRoute";
 import propertiesRoute from "./routes/propertiesRoute";
 import productsRoute from "./routes/productsRoute";
 import opinionsRoute from "./routes/opinionsRoute";
+import ordersRoute from "./routes/ordersRoute";
 
 dotenv.config();
 connectDb();
@@ -28,6 +29,7 @@ app.use(`/api/${apiVersion}/property-types`, propertyTypesRoute);
 app.use(`/api/${apiVersion}/properties`, propertiesRoute);
 app.use(`/api/${apiVersion}/products`, productsRoute);
 app.use(`/api/${apiVersion}/opinions`, opinionsRoute);
+app.use(`/api/${apiVersion}/orders`, ordersRoute);
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);

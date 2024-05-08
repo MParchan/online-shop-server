@@ -36,6 +36,7 @@ const createOpinion = async (req: AuthorizedRequest, res: Response) => {
         const user = await getUserId(req);
         if (!user) {
             res.status(401).json({ message: "User is not authorized" });
+            return;
         }
         const opinion: IOpinion = req.body;
         opinion.user = user;
@@ -87,6 +88,10 @@ const getOpinion = async (req: Request, res: Response) => {
 const updateOpinion = async (req: AuthorizedRequest, res: Response) => {
     try {
         const user = await getUserId(req);
+        if (!user) {
+            res.status(401).json({ message: "User is not authorized" });
+            return;
+        }
         const id: string = req.params.id;
         const opinion: IOpinion = req.body;
 
@@ -129,6 +134,10 @@ const updateOpinion = async (req: AuthorizedRequest, res: Response) => {
 const deleteOpinion = async (req: AuthorizedRequest, res: Response) => {
     try {
         const user = await getUserId(req);
+        if (!user) {
+            res.status(401).json({ message: "User is not authorized" });
+            return;
+        }
         const id: string = req.params.id;
 
         const opinion = await Opinion.findById(id);

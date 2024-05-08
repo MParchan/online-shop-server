@@ -51,7 +51,9 @@ const getProducts = async (req: Request, res: Response) => {
 //@access private- Admin only
 const createProduct = async (req: Request, res: Response) => {
     try {
-        const { properties, images, ...product }: { properties?: IProperty[]; images?: IImage[] } & IProduct = req.body;
+        const product: IProduct = req.body;
+        const properties: IProperty[] = req.body.properties;
+        const images: IImage[] = req.body.images;
 
         if (!Types.ObjectId.isValid(product.subcategory)) {
             res.status(400).json({ message: "Invalid subcategory id" });
@@ -72,6 +74,8 @@ const createProduct = async (req: Request, res: Response) => {
             return;
         }
 
+        product.images = [];
+        product.productProperties = [];
         const productInstance = new Product(product);
         await productInstance.validate();
 
