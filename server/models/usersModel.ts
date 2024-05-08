@@ -18,10 +18,12 @@ const userSchema = new Schema<IUser>(
             required: [true, "User phone number is required"]
         },
         firstName: {
-            type: String
+            type: String,
+            required: [true, "User first name is required"]
         },
         lastName: {
-            type: String
+            type: String,
+            required: [true, "User last name is required"]
         },
         role: {
             type: Schema.Types.ObjectId,
