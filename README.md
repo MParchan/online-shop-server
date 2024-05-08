@@ -4,7 +4,7 @@
 * Create an .env file in root folder, .env file structure:
 ````ts
 PORT="<PORT>"
-CONNECTION_STRING="<DB_CONNECTION_STRING>"
+CONNECTION_STRING="<MONGODB_CONNECTION_STRING>"
 ACCESS_TOKEN_SECRET="<ACCESS_TOKEN_SECRET>"
 ````
 * install packages `npm i`
