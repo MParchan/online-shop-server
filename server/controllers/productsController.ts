@@ -4,10 +4,9 @@ import Property from "../models/propertiesModel";
 import Image from "../models/imagesModel";
 import { IProduct } from "../types/mongodb/product.interface";
 import { IImage } from "../types/mongodb/image.interface";
-import { Types } from "mongoose";
+import { Types, startSession } from "mongoose";
 import { IProperty } from "../types/mongodb/property.interface";
 import ProductProperty from "../models/productPropertiesModel";
-import { IProductProperty } from "../types/mongodb/productProperty.interface";
 import Subcategory from "../models/subcategoriesModel";
 import Brand from "../models/brandsModel";
 
@@ -76,56 +75,61 @@ const createProduct = async (req: Request, res: Response) => {
         const productInstance = new Product(product);
         await productInstance.validate();
 
-        const propertyInstances: IProperty[] = [];
-        const productPropertyInstances: IProductProperty[] = [];
-        let propertyPromises;
-        if (Array.isArray(properties)) {
-            propertyPromises = properties.map(async (property) => {
-                const existingProperty = await Property.findOne({
-                    value: property.value,
-                    propertyType: property.propertyType
-                });
-                let productPropertyInstace;
-                if (existingProperty) {
-                    productPropertyInstace = new ProductProperty({
-                        product: productInstance._id,
-                        property: existingProperty._id
-                    });
-                    productPropertyInstances.push(productPropertyInstace);
-                    existingProperty.productProperties.push(productPropertyInstace._id);
-                    await existingProperty.save();
-                } else {
-                    const propertyInstance = new Property(property);
-                    await propertyInstance.validate();
-                    productPropertyInstace = new ProductProperty({
-                        product: productInstance._id,
-                        property: propertyInstance._id
-                    });
-                    propertyInstance.productProperties.push(productPropertyInstace._id);
-                    propertyInstances.push(propertyInstance);
-                }
-                productPropertyInstances.push(productPropertyInstace);
-                productInstance.productProperties.push(productPropertyInstace._id);
-            });
-        }
+        const session = await startSession();
+        session.startTransaction();
+        try {
+            if (properties) {
+                await Promise.all(
+                    properties.map(async (property) => {
+                        const existingProperty = await Property.findOne({
+                            value: property.value,
+                            propertyType: property.propertyType
+                        });
+                        let productPropertyInstace;
+                        if (existingProperty) {
+                            productPropertyInstace = new ProductProperty({
+                                product: productInstance._id,
+                                property: existingProperty._id
+                            });
+                            existingProperty.productProperties.push(productPropertyInstace._id);
+                            await existingProperty.validate();
+                            await existingProperty.save();
+                        } else {
+                            const propertyInstance = new Property(property);
+                            await propertyInstance.validate();
+                            productPropertyInstace = new ProductProperty({
+                                product: productInstance._id,
+                                property: propertyInstance._id
+                            });
+                            propertyInstance.productProperties.push(productPropertyInstace._id);
+                            await propertyInstance.validate();
+                            await propertyInstance.save();
+                        }
+                        await productPropertyInstace.validate();
+                        await productPropertyInstace.save();
+                        productInstance.productProperties.push(productPropertyInstace._id);
+                    })
+                );
+            }
 
-        const imageInstances: IImage[] = [];
-        let imagePromises;
-        if (Array.isArray(images)) {
-            imagePromises = images.map(async (image) => {
-                const modifiedImage = { ...image, product: productInstance._id };
-                const imageInstance = new Image(modifiedImage);
-                await imageInstance.validate();
-                imageInstances.push(imageInstance);
-                productInstance.images.push(imageInstance._id);
-            });
-        }
+            if (images) {
+                await Promise.all(
+                    images.map(async (image) => {
+                        const modifiedImage = { ...image, product: productInstance._id };
+                        const imageInstance = new Image(modifiedImage);
+                        await imageInstance.validate();
+                        await imageInstance.save();
+                        productInstance.images.push(imageInstance._id);
+                    })
+                );
+            }
 
-        await Promise.all([propertyPromises, imagePromises]);
-        await Image.insertMany(imageInstances);
-        await Property.insertMany(propertyInstances);
-        await ProductProperty.insertMany(productPropertyInstances);
-        await productInstance.save();
+            await productInstance.save();
+        } catch (err) {
+            await session.abortTransaction();
+            throw err;
+        }
+        session.endSession();
 
         res.status(201).json(productInstance);
     } catch (err) {
