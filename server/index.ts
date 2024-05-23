@@ -1,5 +1,6 @@
 import express, { Application } from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 import { connectDb } from "./config/dbConnection";
 import authRoute from "./routes/authRoute";
 import rolesRoute from "./routes/rolesRoute";
@@ -19,6 +20,12 @@ const app: Application = express();
 const port: number = Number(process.env.PORT) || 5002;
 const apiVersion: string = "v1";
 
+const corsOptions = {
+    origin: "http://localhost:3000/",
+    optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(`/api/${apiVersion}/auth`, authRoute);
 app.use(`/api/${apiVersion}/roles`, rolesRoute);
