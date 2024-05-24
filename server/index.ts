@@ -21,7 +21,7 @@ const port: number = Number(process.env.PORT) || 5002;
 const apiVersion: string = "v1";
 
 const corsOptions = {
-    origin: "http://localhost:3000/",
+    origin: "http://localhost:3000",
     optionsSuccessStatus: 200
 };
 
