@@ -18,13 +18,15 @@ const getProducts = async (req: Request, res: Response) => {
         const subcategory: string = String(req.query.subcategory);
         const brand: string = String(req.query.brand);
         const page: number = Number(req.query.page) || 1;
+        const name: string = String(req.query.name || "");
         const limit: number = Number(req.query.limit) || 20;
         const skip: number = (page - 1) * limit;
         const sortField: string = String(req.query.sortField || "createdAt");
         const sortOrder: number = req.query.sortOrder === "desc" ? -1 : 1;
 
         const queryOptions = { skip, limit, sort: { [sortField]: sortOrder } };
-        const queryConditions: { subcategory?: string; brand?: string } = {};
+        const queryConditions: { subcategory?: string; brand?: string; name?: { $regex: string; $options: string } } =
+            {};
         if (subcategory !== "undefined") {
             if (!Types.ObjectId.isValid(subcategory)) {
                 return res.status(400).json({ message: "Invalid subcategory id" });
@@ -36,6 +38,9 @@ const getProducts = async (req: Request, res: Response) => {
                 return res.status(400).json({ message: "Invalid brand id" });
             }
             queryConditions.brand = brand;
+        }
+        if (name) {
+            queryConditions.name = { $regex: name, $options: "i" };
         }
 
         const products = await Product.find(queryConditions, null, queryOptions);
