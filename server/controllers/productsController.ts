@@ -17,6 +17,7 @@ const getProducts = async (req: Request, res: Response) => {
     try {
         const subcategory: string = String(req.query.subcategory);
         const brand: string = String(req.query.brand);
+        const category: string = String(req.query.category);
         const page: number = Number(req.query.page) || 1;
         const name: string = String(req.query.name || "");
         const limit: number = Number(req.query.limit) || 20;
@@ -25,13 +26,24 @@ const getProducts = async (req: Request, res: Response) => {
         const sortOrder: number = req.query.sortOrder === "desc" ? -1 : 1;
 
         const queryOptions = { skip, limit, sort: { [sortField]: sortOrder } };
-        const queryConditions: { subcategory?: string; brand?: string; name?: { $regex: string; $options: string } } =
-            {};
+        const queryConditions: {
+            subcategory?: string | { $in: Types.ObjectId[] };
+            brand?: string;
+            name?: { $regex: string; $options: string };
+        } = {};
         if (subcategory !== "undefined") {
             if (!Types.ObjectId.isValid(subcategory)) {
                 return res.status(400).json({ message: "Invalid subcategory id" });
             }
             queryConditions.subcategory = subcategory;
+        }
+        if (category !== "undefined") {
+            if (!Types.ObjectId.isValid(category)) {
+                return res.status(400).json({ message: "Invalid category id" });
+            }
+            const subcategories = await Subcategory.find({ category }).select("_id");
+            const subcategoryIds = subcategories.map((subcat) => subcat._id);
+            queryConditions.subcategory = { $in: subcategoryIds };
         }
         if (brand !== "undefined") {
             if (!Types.ObjectId.isValid(brand)) {
