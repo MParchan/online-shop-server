@@ -15,7 +15,7 @@ const subcategorySchema = new Schema<ISubcategory>(
             required: [true, "Subcategory category is required"]
         },
 
-        propertyTypes: [{ type: Schema.Types.ObjectId, ref: "PropertyTypes" }]
+        propertyTypes: [{ type: Schema.Types.ObjectId, ref: "PropertyType" }]
     },
     {
         timestamps: true

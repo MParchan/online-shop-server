@@ -63,7 +63,16 @@ const createSubcategory = async (req: Request, res: Response) => {
 const getSubcategory = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        const subcategory = await Subcategory.findById(id).populate("category");
+        const subcategory = await Subcategory.findById(id)
+            .populate({
+                path: "category",
+                select: "name"
+            })
+            .populate({
+                path: "propertyTypes",
+                select: "name type",
+                populate: { path: "properties", select: "value" }
+            });
         if (!subcategory) {
             res.status(404).json({ message: "Subcategory not found" });
             return;

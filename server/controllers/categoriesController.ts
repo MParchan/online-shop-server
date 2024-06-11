@@ -7,7 +7,7 @@ import { ICategory } from "../types/mongodb/category.interface";
 //@access public
 const getCategories = async (req: Request, res: Response) => {
     try {
-        const categories = await Category.find().populate("subcategories");
+        const categories = await Category.find().populate({ path: "subcategories", select: "name" });
         res.status(200).json(categories);
     } catch (err) {
         const error = err as Error;
@@ -39,7 +39,7 @@ const createCategory = async (req: Request, res: Response) => {
 const getCategory = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        const category = await Category.findById(id).populate("subcategories");
+        const category = await Category.findById(id).populate({ path: "subcategories", select: "name" });
         if (!category) {
             res.status(404).json({ message: "Category not found" });
             return;

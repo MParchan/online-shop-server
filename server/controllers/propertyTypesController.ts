@@ -62,7 +62,7 @@ const createPropertyType = async (req: Request, res: Response) => {
 const getPropertyType = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        const propertyType = await PropertyType.findById(id).populate("subcategory");
+        const propertyType = await PropertyType.findById(id).populate({ path: "subcategory", select: "name" });
         if (!propertyType) {
             res.status(404).json({ message: "Property type not found" });
             return;

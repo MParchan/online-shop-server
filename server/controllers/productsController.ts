@@ -9,6 +9,7 @@ import { IProperty } from "../types/mongodb/property.interface";
 import ProductProperty from "../models/productPropertiesModel";
 import Subcategory from "../models/subcategoriesModel";
 import Brand from "../models/brandsModel";
+import PropertyType from "../models/propertyTypesModel";
 
 //@desc Get all products
 //@route GET /api/<API_VERSION>/products
@@ -101,7 +102,7 @@ const createProduct = async (req: Request, res: Response) => {
         try {
             if (properties) {
                 await Promise.all(
-                    properties.map(async (property) => {
+                    properties.map(async (property: IProperty) => {
                         const existingProperty = await Property.findOne({
                             value: property.value,
                             propertyType: property.propertyType
@@ -125,6 +126,25 @@ const createProduct = async (req: Request, res: Response) => {
                             propertyInstance.productProperties.push(productPropertyInstace._id);
                             await propertyInstance.validate();
                             await propertyInstance.save();
+                            if (!Types.ObjectId.isValid(property.propertyType)) {
+                                const error = new Error("Invalid property type id");
+                                error.name = "ValidationError";
+                                throw error;
+                            }
+                            const existingPropertyType = await PropertyType.findById(property.propertyType);
+                            if (!existingPropertyType) {
+                                const error = new Error("Property type not found");
+                                error.name = "NotFound";
+                                throw error;
+                            }
+                            if (existingPropertyType.subcategory !== product.subcategory) {
+                                const error = new Error("Property type does not belong to the product subcategory");
+                                error.name = "ValidationError";
+                                throw error;
+                            }
+                            existingPropertyType.properties.push(propertyInstance._id);
+                            await existingPropertyType.validate();
+                            await existingPropertyType.save();
                         }
                         await productPropertyInstace.validate();
                         await productPropertyInstace.save();
@@ -135,7 +155,7 @@ const createProduct = async (req: Request, res: Response) => {
 
             if (images) {
                 await Promise.all(
-                    images.map(async (image) => {
+                    images.map(async (image: IImage) => {
                         const modifiedImage = { ...image, product: productInstance._id };
                         const imageInstance = new Image(modifiedImage);
                         await imageInstance.validate();
@@ -157,6 +177,8 @@ const createProduct = async (req: Request, res: Response) => {
         const error = err as Error;
         if (error.name === "ValidationError") {
             res.status(400).json({ message: error.message });
+        } else if (error.name === "NotFound") {
+            res.status(404).json({ message: error.message });
         } else {
             res.status(500).json({ message: error.message });
         }
