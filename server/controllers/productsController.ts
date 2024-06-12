@@ -137,7 +137,7 @@ const createProduct = async (req: Request, res: Response) => {
                                 error.name = "NotFound";
                                 throw error;
                             }
-                            if (existingPropertyType.subcategory !== product.subcategory) {
+                            if (!existingPropertyType.subcategory.equals(product.subcategory)) {
                                 const error = new Error("Property type does not belong to the product subcategory");
                                 error.name = "ValidationError";
                                 throw error;
