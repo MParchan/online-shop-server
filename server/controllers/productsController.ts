@@ -56,7 +56,7 @@ const getProducts = async (req: Request, res: Response) => {
             queryConditions.name = { $regex: name, $options: "i" };
         }
 
-        const products = await Product.find(queryConditions, null, queryOptions);
+        const products = await Product.find(queryConditions, null, queryOptions).populate("images");
         res.status(200).json(products);
     } catch (err) {
         const error = err as Error;
@@ -206,7 +206,7 @@ const getProduct = async (req: Request, res: Response) => {
             })
             .populate({
                 path: "images",
-                select: "image"
+                select: "image main"
             })
             .populate({
                 path: "opinions",

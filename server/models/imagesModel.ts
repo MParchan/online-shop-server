@@ -8,6 +8,11 @@ const imageSchema = new Schema<IImage>(
             required: [true, "Image is required"]
         },
 
+        main: {
+            type: Boolean,
+            default: false
+        },
+
         product: {
             type: Schema.Types.ObjectId,
             ref: "Product",
