@@ -5,7 +5,7 @@ import {
     getSubcategory,
     updateSubcategory,
     deleteSubcategory
-} from "../controllers/subcategoriesController";
+} from "../controllers/subcategoriescontroler";
 import validateToken from "../middleware/validateTokenHandler";
 import isAdmin from "../middleware/isAdminHandler";
 import validateId from "../middleware/validateIdHandler";
