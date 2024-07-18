@@ -22,7 +22,8 @@ const getBrands = async (req: Request, res: Response) => {
                 },
                 {
                     $group: {
-                        _id: "$brand"
+                        _id: "$brand",
+                        productCount: { $sum: 1 }
                     }
                 },
                 {
@@ -38,13 +39,16 @@ const getBrands = async (req: Request, res: Response) => {
                 },
                 {
                     $replaceRoot: {
-                        newRoot: "$brandDetails"
+                        newRoot: {
+                            $mergeObjects: ["$brandDetails", { productCount: "$productCount" }]
+                        }
                     }
                 },
                 {
                     $project: {
                         _id: 1,
-                        name: 1
+                        name: 1,
+                        productCount: 1
                     }
                 }
             ]);
