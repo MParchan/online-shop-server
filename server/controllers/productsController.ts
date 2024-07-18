@@ -17,46 +17,165 @@ import PropertyType from "../models/propertyTypesModel";
 const getProducts = async (req: Request, res: Response) => {
     try {
         const subcategory: string = String(req.query.subcategory);
-        const brand: string = String(req.query.brand);
+        const brands: string[] = (req.query.brands as string)?.split(",") || [];
         const category: string = String(req.query.category);
-        const page: number = Number(req.query.page) || 1;
         const name: string = String(req.query.name || "");
+        const properties: string[] = (req.query.properties as string)?.split(",") || [];
+        const page: number = Number(req.query.page) || 1;
         const limit: number = Number(req.query.limit) || 20;
         const skip: number = (page - 1) * limit;
         const sortField: string = String(req.query.sortField || "createdAt");
-        const sortOrder: number = req.query.sortOrder === "desc" ? -1 : 1;
+        const sortOrder: 1 | -1 = req.query.sortOrder === "desc" ? -1 : 1;
 
-        const queryOptions = { skip, limit, sort: { [sortField]: sortOrder } };
-        const queryConditions: {
-            subcategory?: string | { $in: Types.ObjectId[] };
-            brand?: string;
-            name?: { $regex: string; $options: string };
-        } = {};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const matchConditions: { [key: string]: any } = {};
+
+        // Handle subcategory filtering
         if (subcategory !== "undefined") {
             if (!Types.ObjectId.isValid(subcategory)) {
                 return res.status(400).json({ message: "Invalid subcategory id" });
             }
-            queryConditions.subcategory = subcategory;
+            matchConditions.subcategory = new Types.ObjectId(subcategory);
         }
+
         if (category !== "undefined") {
             if (!Types.ObjectId.isValid(category)) {
                 return res.status(400).json({ message: "Invalid category id" });
             }
             const subcategories = await Subcategory.find({ category }).select("_id");
             const subcategoryIds = subcategories.map((subcat) => subcat._id);
-            queryConditions.subcategory = { $in: subcategoryIds };
-        }
-        if (brand !== "undefined") {
-            if (!Types.ObjectId.isValid(brand)) {
-                return res.status(400).json({ message: "Invalid brand id" });
-            }
-            queryConditions.brand = brand;
-        }
-        if (name) {
-            queryConditions.name = { $regex: name, $options: "i" };
+            matchConditions.subcategory = { $in: subcategoryIds };
         }
 
-        const products = await Product.find(queryConditions, null, queryOptions).populate("images");
+        if (brands.length > 0) {
+            const invalidBrands = brands.filter((brand) => !Types.ObjectId.isValid(brand));
+            if (invalidBrands.length > 0) {
+                return res.status(400).json({ message: "Invalid brand id(s)" });
+            }
+            matchConditions.brand = { $in: brands.map((brand) => new Types.ObjectId(brand)) };
+        }
+
+        if (name) {
+            matchConditions.name = { $regex: name, $options: "i" };
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const pipeline: any[] = [{ $match: matchConditions }];
+
+        if (properties.length > 0) {
+            const invalidProperties = properties.filter((property) => !Types.ObjectId.isValid(property));
+            if (invalidProperties.length > 0) {
+                return res.status(400).json({ message: "Invalid property id(s)" });
+            }
+            const propertyConditions = properties.map((property) => ({
+                "productProperties.property": new Types.ObjectId(property)
+            }));
+            pipeline.push(
+                {
+                    $lookup: {
+                        from: "productproperties",
+                        localField: "_id",
+                        foreignField: "product",
+                        as: "productProperties"
+                    }
+                },
+                {
+                    $match: {
+                        $and: propertyConditions
+                    }
+                },
+                {
+                    $unwind: "$productProperties"
+                }
+            );
+        }
+
+        pipeline.push(
+            {
+                $lookup: {
+                    from: "productproperties",
+                    localField: "_id",
+                    foreignField: "product",
+                    as: "productProperties"
+                }
+            },
+            {
+                $unwind: "$productProperties"
+            },
+            {
+                $lookup: {
+                    from: "properties",
+                    localField: "productProperties.property",
+                    foreignField: "_id",
+                    as: "productProperties.property"
+                }
+            },
+            {
+                $unwind: "$productProperties.property"
+            },
+            {
+                $lookup: {
+                    from: "propertytypes",
+                    localField: "productProperties.property.propertyType",
+                    foreignField: "_id",
+                    as: "productProperties.property.propertyType"
+                }
+            },
+            {
+                $lookup: {
+                    from: "images",
+                    localField: "images",
+                    foreignField: "_id",
+                    as: "images"
+                }
+            },
+            {
+                $lookup: {
+                    from: "opinions",
+                    localField: "opinions",
+                    foreignField: "_id",
+                    as: "opinions"
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    name: { $first: "$name" },
+                    subcategory: { $first: "$subcategory" },
+                    brand: { $first: "$brand" },
+                    images: { $first: "$images" },
+                    opinions: { $first: "$opinions" },
+                    productProperties: { $push: "$productProperties" }
+                }
+            },
+            {
+                $project: {
+                    name: 1,
+                    subcategory: 1,
+                    brand: 1,
+                    images: 1,
+                    opinions: 1,
+                    "productProperties._id": 1,
+                    "productProperties.property._id": 1,
+                    "productProperties.property.value": 1,
+                    "productProperties.property.propertyType._id": 1,
+                    "productProperties.property.propertyType.name": 1,
+                    "productProperties.property.propertyType.type": 1
+                }
+            },
+            {
+                $sort: { [sortField]: sortOrder }
+            },
+            {
+                $skip: skip
+            },
+            {
+                $limit: limit
+            }
+        );
+
+        const products = await Product.aggregate(pipeline).exec();
+
         res.status(200).json(products);
     } catch (err) {
         const error = err as Error;
