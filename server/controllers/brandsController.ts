@@ -1,12 +1,55 @@
 import { Request, Response } from "express";
 import Brand from "../models/brandsModel";
 import { IBrand } from "../types/mongodb/brand.interface";
+import { Types } from "mongoose";
+import Product from "../models/productsModel";
 
 //@desc Get all brands
 //@route GET /api/<API_VERSION>/brands
 //@access public
 const getBrands = async (req: Request, res: Response) => {
     try {
+        const subcategory: string = String(req.query.subcategory);
+        if (subcategory !== "undefined") {
+            if (!Types.ObjectId.isValid(subcategory)) {
+                return res.status(400).json({ message: "Invalid subcategory id" });
+            }
+            const brands = await Product.aggregate([
+                {
+                    $match: {
+                        subcategory: new Types.ObjectId(subcategory)
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$brand"
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "brands",
+                        localField: "_id",
+                        foreignField: "_id",
+                        as: "brandDetails"
+                    }
+                },
+                {
+                    $unwind: "$brandDetails"
+                },
+                {
+                    $replaceRoot: {
+                        newRoot: "$brandDetails"
+                    }
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        name: 1
+                    }
+                }
+            ]);
+            return res.status(200).json(brands);
+        }
         const brands = await Brand.find();
         res.status(200).json(brands);
     } catch (err) {
