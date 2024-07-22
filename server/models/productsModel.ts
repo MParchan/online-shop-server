@@ -28,7 +28,7 @@ const productSchema = new Schema<IProduct>(
             type: Number,
             validate: {
                 validator: function (value: number) {
-                    return Number.isInteger(value) && value > 0;
+                    return Number.isInteger(value) && value >= 0;
                 },
                 message: "{VALUE} is not a positive integer"
             },

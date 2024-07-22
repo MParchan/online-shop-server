@@ -16,11 +16,13 @@ import PropertyType from "../models/propertyTypesModel";
 //@access public
 const getProducts = async (req: Request, res: Response) => {
     try {
+        // Query parameters
         const subcategory: string = String(req.query.subcategory);
         const brands: string[] = (req.query.brands as string)?.split(",") || [];
         const category: string = String(req.query.category);
         const name: string = String(req.query.name || "");
         const properties: string[] = (req.query.properties as string)?.split(",") || [];
+        const available: boolean = req.query.available === undefined || req.query.available === "true";
         const page: number = Number(req.query.page) || 1;
         const limit: number = Number(req.query.limit) || 20;
         const skip: number = (page - 1) * limit;
@@ -30,7 +32,7 @@ const getProducts = async (req: Request, res: Response) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const matchConditions: { [key: string]: any } = {};
 
-        // Handle subcategory filtering
+        // Subcategory filtering
         if (subcategory !== "undefined") {
             if (!Types.ObjectId.isValid(subcategory)) {
                 return res.status(400).json({ message: "Invalid subcategory id" });
@@ -38,6 +40,7 @@ const getProducts = async (req: Request, res: Response) => {
             matchConditions.subcategory = new Types.ObjectId(subcategory);
         }
 
+        // Category filtering
         if (category !== "undefined") {
             if (!Types.ObjectId.isValid(category)) {
                 return res.status(400).json({ message: "Invalid category id" });
@@ -47,6 +50,7 @@ const getProducts = async (req: Request, res: Response) => {
             matchConditions.subcategory = { $in: subcategoryIds };
         }
 
+        // Brand filtering
         if (brands.length > 0) {
             const invalidBrands = brands.filter((brand) => !Types.ObjectId.isValid(brand));
             if (invalidBrands.length > 0) {
@@ -55,13 +59,20 @@ const getProducts = async (req: Request, res: Response) => {
             matchConditions.brand = { $in: brands.map((brand) => new Types.ObjectId(brand)) };
         }
 
+        // Products searching
         if (name) {
             matchConditions.name = { $regex: name, $options: "i" };
+        }
+
+        // Filtering available products
+        if (available) {
+            matchConditions.quantity = { $gt: 0 };
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const pipeline: any[] = [{ $match: matchConditions }];
 
+        // Properties filtering
         if (properties.length > 0) {
             const invalidProperties = properties.filter((property) => !Types.ObjectId.isValid(property));
             if (invalidProperties.length > 0) {
@@ -90,6 +101,7 @@ const getProducts = async (req: Request, res: Response) => {
             );
         }
 
+        // Get products
         pipeline.push(
             {
                 $lookup: {
@@ -141,6 +153,8 @@ const getProducts = async (req: Request, res: Response) => {
                 $group: {
                     _id: "$_id",
                     name: { $first: "$name" },
+                    price: { $first: "$price" },
+                    quantity: { $first: "$quantity" },
                     subcategory: { $first: "$subcategory" },
                     brand: { $first: "$brand" },
                     images: { $first: "$images" },
@@ -151,6 +165,8 @@ const getProducts = async (req: Request, res: Response) => {
             {
                 $project: {
                     name: 1,
+                    price: 1,
+                    quantity: 1,
                     subcategory: 1,
                     brand: 1,
                     images: 1,
@@ -165,18 +181,100 @@ const getProducts = async (req: Request, res: Response) => {
             },
             {
                 $sort: { [sortField]: sortOrder }
-            },
-            {
-                $skip: skip
-            },
-            {
-                $limit: limit
             }
         );
 
-        const products = await Product.aggregate(pipeline).exec();
+        // Execute the initial pipeline to get all matching products
+        const allProducts = await Product.aggregate(pipeline).exec();
 
-        res.status(200).json(products);
+        // Get IDs of all matching products
+        const productIds = allProducts.map((product) => product._id);
+
+        // Aggregation pipeline to get count of brands for all matching products
+        const brandCountsPipeline = [
+            { $match: { _id: { $in: productIds } } },
+            {
+                $group: {
+                    _id: "$brand",
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $lookup: {
+                    from: "brands",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "brandDetails"
+                }
+            },
+            {
+                $unwind: "$brandDetails"
+            },
+            {
+                $project: {
+                    _id: 1,
+                    count: 1,
+                    brand: {
+                        _id: "$brandDetails._id",
+                        name: "$brandDetails.name"
+                    }
+                }
+            }
+        ];
+
+        const brandCounts = await Product.aggregate(brandCountsPipeline).exec();
+
+        // Aggregation pipeline to get count of properties for all matching products
+        const propertyCountsPipeline = [
+            { $match: { _id: { $in: productIds } } },
+            {
+                $lookup: {
+                    from: "productproperties",
+                    localField: "_id",
+                    foreignField: "product",
+                    as: "productProperties"
+                }
+            },
+            { $unwind: "$productProperties" },
+            {
+                $group: {
+                    _id: "$productProperties.property",
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $lookup: {
+                    from: "properties",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "propertyDetails"
+                }
+            },
+            {
+                $unwind: "$propertyDetails"
+            },
+            {
+                $project: {
+                    _id: 1,
+                    count: 1,
+                    property: {
+                        _id: "$propertyDetails._id",
+                        name: "$propertyDetails.name",
+                        value: "$propertyDetails.value"
+                    }
+                }
+            }
+        ];
+
+        const propertyCounts = await Product.aggregate(propertyCountsPipeline).exec();
+
+        const paginatedProducts = allProducts.slice(skip, skip + limit);
+
+        res.status(200).json({
+            products: paginatedProducts,
+            brands: brandCounts,
+            properties: propertyCounts
+        });
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });
