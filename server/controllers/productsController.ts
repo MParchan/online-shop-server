@@ -31,6 +31,8 @@ const getProducts = async (req: Request, res: Response) => {
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const matchConditions: { [key: string]: any } = {};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const matchBrandCondition: { [key: string]: any } = {};
 
         // Subcategory filtering
         if (subcategory !== "undefined") {
@@ -38,6 +40,7 @@ const getProducts = async (req: Request, res: Response) => {
                 return res.status(400).json({ message: "Invalid subcategory id" });
             }
             matchConditions.subcategory = new Types.ObjectId(subcategory);
+            matchBrandCondition.subcategory = new Types.ObjectId(subcategory);
         }
 
         // Category filtering
@@ -48,6 +51,7 @@ const getProducts = async (req: Request, res: Response) => {
             const subcategories = await Subcategory.find({ category }).select("_id");
             const subcategoryIds = subcategories.map((subcat) => subcat._id);
             matchConditions.subcategory = { $in: subcategoryIds };
+            matchBrandCondition.subcategory = { $in: subcategoryIds };
         }
 
         // Brand filtering
@@ -62,15 +66,20 @@ const getProducts = async (req: Request, res: Response) => {
         // Products searching
         if (name) {
             matchConditions.name = { $regex: name, $options: "i" };
+            matchBrandCondition.brand = { $regex: name, $options: "i" };
         }
 
         // Filtering available products
         if (available) {
             matchConditions.quantity = { $gt: 0 };
+            matchBrandCondition.quantity = { $gt: 0 };
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const pipeline: any[] = [{ $match: matchConditions }];
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const brandPipeline: any[] = [{ $match: matchBrandCondition }];
 
         // Properties filtering
         if (properties.length > 0) {
@@ -78,9 +87,33 @@ const getProducts = async (req: Request, res: Response) => {
             if (invalidProperties.length > 0) {
                 return res.status(400).json({ message: "Invalid property id(s)" });
             }
-            const propertyConditions = properties.map((property) => ({
-                "productProperties.property": new Types.ObjectId(property)
-            }));
+
+            const propertiesWithTypes = await Property.aggregate([
+                { $match: { _id: { $in: properties.map((property) => new Types.ObjectId(property)) } } },
+                {
+                    $lookup: {
+                        from: "propertytypes",
+                        localField: "propertyType",
+                        foreignField: "_id",
+                        as: "propertyType"
+                    }
+                },
+                { $unwind: "$propertyType" }
+            ]);
+
+            const groupedProperties = propertiesWithTypes.reduce((acc, property) => {
+                const propertyTypeId = property.propertyType._id.toString();
+                if (!acc[propertyTypeId]) {
+                    acc[propertyTypeId] = [];
+                }
+                acc[propertyTypeId].push(property._id);
+                return acc;
+            }, {});
+
+            const propertyConditions = Object.values(groupedProperties).map((propertyIds) => {
+                return { "productProperties.property": { $in: propertyIds } };
+            });
+
             pipeline.push(
                 {
                     $lookup: {
@@ -97,6 +130,21 @@ const getProducts = async (req: Request, res: Response) => {
                 },
                 {
                     $unwind: "$productProperties"
+                }
+            );
+            brandPipeline.push(
+                {
+                    $lookup: {
+                        from: "productproperties",
+                        localField: "_id",
+                        foreignField: "product",
+                        as: "productProperties"
+                    }
+                },
+                {
+                    $match: {
+                        $and: propertyConditions
+                    }
                 }
             );
         }
@@ -159,7 +207,9 @@ const getProducts = async (req: Request, res: Response) => {
                     brand: { $first: "$brand" },
                     images: { $first: "$images" },
                     opinions: { $first: "$opinions" },
-                    productProperties: { $push: "$productProperties" }
+                    productProperties: { $push: "$productProperties" },
+                    createdAt: { $first: "$createdAt" },
+                    updatedAt: { $first: "$updatedAt" }
                 }
             },
             {
@@ -176,7 +226,9 @@ const getProducts = async (req: Request, res: Response) => {
                     "productProperties.property.value": 1,
                     "productProperties.property.propertyType._id": 1,
                     "productProperties.property.propertyType.name": 1,
-                    "productProperties.property.propertyType.type": 1
+                    "productProperties.property.propertyType.type": 1,
+                    createdAt: 1,
+                    updatedAt: 1
                 }
             },
             {
@@ -191,38 +243,35 @@ const getProducts = async (req: Request, res: Response) => {
         const productIds = allProducts.map((product) => product._id);
 
         // Aggregation pipeline to get count of brands for all matching products
-        const brandCountsPipeline = [
-            { $match: { _id: { $in: productIds } } },
-            {
-                $group: {
-                    _id: "$brand",
-                    count: { $sum: 1 }
-                }
-            },
+        brandPipeline.push(
             {
                 $lookup: {
                     from: "brands",
-                    localField: "_id",
+                    localField: "brand",
                     foreignField: "_id",
-                    as: "brandDetails"
+                    as: "brands"
                 }
             },
             {
-                $unwind: "$brandDetails"
+                $unwind: "$brands"
+            },
+            {
+                $group: {
+                    _id: "$brand",
+                    count: { $sum: 1 },
+                    brand: { $first: "$brands" }
+                }
             },
             {
                 $project: {
                     _id: 1,
                     count: 1,
-                    brand: {
-                        _id: "$brandDetails._id",
-                        name: "$brandDetails.name"
-                    }
+                    "brand.name": 1
                 }
             }
-        ];
+        );
 
-        const brandCounts = await Product.aggregate(brandCountsPipeline).exec();
+        const brandCounts = await Product.aggregate(brandPipeline).exec();
 
         // Aggregation pipeline to get count of properties for all matching products
         const propertyCountsPipeline = [
