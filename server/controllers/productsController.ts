@@ -81,6 +81,9 @@ const getProducts = async (req: Request, res: Response) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const brandPipeline: any[] = [{ $match: matchBrandCondition }];
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const propertyPipeline: any[] = [{ $match: matchConditions }];
+
         // Properties filtering
         if (properties.length > 0) {
             const invalidProperties = properties.filter((property) => !Types.ObjectId.isValid(property));
@@ -100,7 +103,6 @@ const getProducts = async (req: Request, res: Response) => {
                 },
                 { $unwind: "$propertyType" }
             ]);
-
             const groupedProperties = propertiesWithTypes.reduce((acc, property) => {
                 const propertyTypeId = property.propertyType._id.toString();
                 if (!acc[propertyTypeId]) {
@@ -236,13 +238,7 @@ const getProducts = async (req: Request, res: Response) => {
             }
         );
 
-        // Execute the initial pipeline to get all matching products
-        const allProducts = await Product.aggregate(pipeline).exec();
-
-        // Get IDs of all matching products
-        const productIds = allProducts.map((product) => product._id);
-
-        // Aggregation pipeline to get count of brands for all matching products
+        // Get brands
         brandPipeline.push(
             {
                 $lookup: {
@@ -271,11 +267,7 @@ const getProducts = async (req: Request, res: Response) => {
             }
         );
 
-        const brandCounts = await Product.aggregate(brandPipeline).exec();
-
-        // Aggregation pipeline to get count of properties for all matching products
-        const propertyCountsPipeline = [
-            { $match: { _id: { $in: productIds } } },
+        propertyPipeline.push(
             {
                 $lookup: {
                     from: "productproperties",
@@ -308,21 +300,24 @@ const getProducts = async (req: Request, res: Response) => {
                     count: 1,
                     property: {
                         _id: "$propertyDetails._id",
-                        name: "$propertyDetails.name",
-                        value: "$propertyDetails.value"
+                        value: "$propertyDetails.value",
+                        propertyType: "$propertyDetails.propertyType"
                     }
                 }
             }
-        ];
+        );
 
-        const propertyCounts = await Product.aggregate(propertyCountsPipeline).exec();
-
+        const allProducts = await Product.aggregate(pipeline).exec();
+        const brandCount = await Product.aggregate(brandPipeline).exec();
+        const propertyCount = await Product.aggregate(propertyPipeline).exec();
+        const productCount = allProducts.length;
         const paginatedProducts = allProducts.slice(skip, skip + limit);
 
         res.status(200).json({
             products: paginatedProducts,
-            brands: brandCounts,
-            properties: propertyCounts
+            brands: brandCount,
+            properties: propertyCount,
+            productCount: productCount
         });
     } catch (err) {
         const error = err as Error;
