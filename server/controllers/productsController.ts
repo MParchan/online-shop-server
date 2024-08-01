@@ -149,6 +149,22 @@ const getProducts = async (req: Request, res: Response) => {
                     }
                 }
             );
+
+            propertyPipeline.push(
+                {
+                    $lookup: {
+                        from: "productproperties",
+                        localField: "_id",
+                        foreignField: "product",
+                        as: "productProperties"
+                    }
+                },
+                {
+                    $match: {
+                        $and: propertyConditions
+                    }
+                }
+            );
         }
 
         // Get products
@@ -288,20 +304,20 @@ const getProducts = async (req: Request, res: Response) => {
                     from: "properties",
                     localField: "_id",
                     foreignField: "_id",
-                    as: "propertyDetails"
+                    as: "productProperties.property"
                 }
             },
             {
-                $unwind: "$propertyDetails"
+                $unwind: "$productProperties.property"
             },
             {
                 $project: {
                     _id: 1,
                     count: 1,
                     property: {
-                        _id: "$propertyDetails._id",
-                        value: "$propertyDetails.value",
-                        propertyType: "$propertyDetails.propertyType"
+                        _id: "$productProperties.property._id",
+                        value: "$productProperties.property.value",
+                        propertyType: "$productProperties.property.propertyType"
                     }
                 }
             }
