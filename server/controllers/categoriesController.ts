@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import Category from "../models/categoriesModel";
 import { ICategory } from "../types/mongodb/category.interface";
+import Product from "../models/productsModel";
+import { ISubcategory } from "../types/mongodb/subcategory.interface";
 
 //@desc Get all categories
 //@route GET /api/<API_VERSION>/categories
@@ -44,7 +46,22 @@ const getCategory = async (req: Request, res: Response) => {
             res.status(404).json({ message: "Category not found" });
             return;
         }
-        res.status(200).json(category);
+
+        const subcategoriesWithProductCount = await Promise.all(
+            (category.subcategories as ISubcategory[]).map(async (subcategory) => {
+                const productCount = await Product.countDocuments({ subcategory: subcategory._id });
+                return {
+                    ...subcategory.toObject(),
+                    productCount
+                };
+            })
+        );
+        const categoryWithProductCount = {
+            ...category.toObject(),
+            subcategories: subcategoriesWithProductCount
+        };
+
+        res.status(200).json(categoryWithProductCount);
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });
