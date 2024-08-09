@@ -20,8 +20,15 @@ connectDb();
 const app: Application = express();
 const apiVersion: string = "v1";
 
+const whitelist = process.env.CORS_ORIGIN?.split(", ") || [];
 const corsOptions = {
-    origin: process.env.CORS_ORIGIN,
+    origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+        if (!origin || whitelist.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     optionsSuccessStatus: 200
 };
 
