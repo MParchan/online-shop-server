@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import User from "../models/usersModel";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import passwordRequiredCharacters from "../middleware/passwordRequiredCharactersHandler";
+import passwordValidation from "../utils/passwordValidation";
+import emailValidation from "../utils/emailValidation";
 import { AuthorizedRequest } from "../types/express/authorizedRequest.interface";
 import Role from "../models/rolesModel";
 import { IUser } from "../types/mongodb/user.interface";
@@ -12,11 +13,6 @@ import { IUser } from "../types/mongodb/user.interface";
 //@access public
 const registerUser = async (req: Request, res: Response) => {
     try {
-        const existingUser = await User.findOne({ email: req.body.email });
-        if (existingUser) {
-            res.status(409).json({ message: "User with this email already exists" });
-            return;
-        }
         const {
             confirmPassword,
             ...user
@@ -24,21 +20,46 @@ const registerUser = async (req: Request, res: Response) => {
             confirmPassword: string;
         } & IUser = req.body;
 
-        if (user.password !== confirmPassword) {
-            res.status(400).json({ message: "Password and confirm password is not the same" });
+        if (
+            !user.firstName ||
+            !user.lastName ||
+            !user.email ||
+            !user.phoneNumber ||
+            !user.password ||
+            !confirmPassword
+        ) {
+            res.status(400).json({
+                message: "User firstname, lastname, email, phone number, password and confirm password are mandatory"
+            });
             return;
         }
+
+        if (!emailValidation(user.email)) {
+            res.status(400).json({ message: "Email is invalid" });
+            return;
+        }
+        const existingUser = await User.findOne({ email: req.body.email });
+        if (existingUser) {
+            res.status(400).json({ message: "User with this email already exists" });
+            return;
+        }
+
         if (user.password.length < 8) {
             res.status(400).json({ message: "Password must be at least 8 characters long" });
             return;
         }
-        if (!passwordRequiredCharacters(user.password)) {
+        if (!passwordValidation(user.password)) {
             res.status(400).json({
                 message:
                     "The password must contain an uppercase letter, a lowercase letter, a special character and a number"
             });
             return;
         }
+        if (user.password !== confirmPassword) {
+            res.status(400).json({ message: "Password and confirm password is not the same" });
+            return;
+        }
+
         const salt = await bcrypt.genSalt();
         user.password = await bcrypt.hash(user.password, salt);
         const role = await Role.findOne({ name: "User" }).exec();
@@ -77,7 +98,8 @@ const loginUser = async (req: Request, res: Response) => {
         const accessToken = jwt.sign(
             {
                 user: {
-                    email: user.email
+                    email: user.email,
+                    firstname: user.firstName
                 }
             },
             process.env.ACCESS_TOKEN_SECRET || "Secret",
