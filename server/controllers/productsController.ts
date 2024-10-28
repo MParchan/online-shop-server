@@ -66,7 +66,7 @@ const getProducts = async (req: Request, res: Response) => {
         // Products searching
         if (name) {
             matchConditions.name = { $regex: name, $options: "i" };
-            matchBrandCondition.brand = { $regex: name, $options: "i" };
+            matchBrandCondition.name = { $regex: name, $options: "i" };
         }
 
         // Filtering available products

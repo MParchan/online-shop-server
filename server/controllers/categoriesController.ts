@@ -9,7 +9,45 @@ import { ISubcategory } from "../types/mongodb/subcategory.interface";
 //@access public
 const getCategories = async (req: Request, res: Response) => {
     try {
+        const productName: string = String(req.query.productName || "");
         const categories = await Category.find().populate({ path: "subcategories", select: "name" });
+
+        if (productName) {
+            const categoriesWithProductCount = await Promise.all(
+                categories.map(async (category) => {
+                    let totalCategoryProductCount = 0;
+                    const subcategoriesWithProductCount = await Promise.all(
+                        (category.subcategories as ISubcategory[]).map(async (subcategory) => {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            const queryConditions: any = { subcategory: subcategory._id };
+                            if (productName) {
+                                queryConditions.name = { $regex: productName, $options: "i" };
+                            }
+                            const productCount = await Product.countDocuments(queryConditions);
+                            totalCategoryProductCount += productCount;
+
+                            return productCount > 0 ? { ...subcategory.toObject(), productCount } : null;
+                        })
+                    );
+
+                    const filteredSubcategories = subcategoriesWithProductCount.filter(
+                        (subcategory) => subcategory !== null
+                    );
+                    return filteredSubcategories.length > 0
+                        ? {
+                              ...category.toObject(),
+                              subcategories: filteredSubcategories,
+                              productCount: totalCategoryProductCount
+                          }
+                        : null;
+                })
+            );
+
+            const filteredCategories = categoriesWithProductCount.filter((category) => category !== null);
+            res.status(200).json(filteredCategories);
+            return;
+        }
+
         res.status(200).json(categories);
     } catch (err) {
         const error = err as Error;
