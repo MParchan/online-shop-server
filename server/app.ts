@@ -12,6 +12,7 @@ import propertiesRoute from "./routes/propertiesRoute";
 import productsRoute from "./routes/productsRoute";
 import opinionsRoute from "./routes/opinionsRoute";
 import ordersRoute from "./routes/ordersRoute";
+import addressesRoute from "./routes/addressesRoute";
 import helmet from "helmet";
 
 dotenv.config();
@@ -52,5 +53,6 @@ app.use(`/api/${apiVersion}/properties`, propertiesRoute);
 app.use(`/api/${apiVersion}/products`, productsRoute);
 app.use(`/api/${apiVersion}/opinions`, opinionsRoute);
 app.use(`/api/${apiVersion}/orders`, ordersRoute);
+app.use(`/api/${apiVersion}/addresses`, addressesRoute);
 
 export default app;

@@ -80,7 +80,7 @@ const createBrand = async (req: Request, res: Response) => {
     }
 };
 
-//@desc Get brnad
+//@desc Get brand
 //@route GET /api/<API_VERSION>/brands/:id
 //@access public
 const getBrand = async (req: Request, res: Response) => {
