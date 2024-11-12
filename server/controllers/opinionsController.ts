@@ -6,21 +6,25 @@ import Opinion from "../models/opinionsModel";
 import getUserId from "../middleware/getUserIdHandler";
 import { IOpinion } from "../types/mongodb/opinion.interface";
 
-//@desc Get all product opinions
+//@desc Get all user opinions
 //@route GET /api/<API_VERSION>/opinions
-//@access public
-const getOpinions = async (req: Request, res: Response) => {
+//@access private
+const getOpinions = async (req: AuthorizedRequest, res: Response) => {
     try {
-        const product = String(req.query.product);
-        const queryConditions: { product?: string } = {};
-        if (product !== "undefined") {
-            if (!Types.ObjectId.isValid(product)) {
-                return res.status(400).json({ message: "Invalid product id" });
-            }
-            queryConditions.product = product;
+        const user = await getUserId(req);
+        if (!user) {
+            res.status(401).json({ message: "User is not authorized" });
+            return;
         }
+        const page: number = Number(req.query.page) || 1;
+        const limit: number = Number(req.query.limit) || 20;
+        const skip: number = (page - 1) * limit;
+        const sortField: string = String(req.query.sortField || "createdAt");
+        const sortOrder: number = req.query.sortOrder === "desc" ? -1 : 1;
 
-        const opinions = await Opinion.find(queryConditions);
+        const queryOptions = { skip, limit, sort: { [sortField]: sortOrder } };
+
+        const opinions = await Opinion.find({ user: user }, null, queryOptions);
         res.status(200).json(opinions);
     } catch (err) {
         const error = err as Error;
@@ -53,6 +57,8 @@ const createOpinion = async (req: AuthorizedRequest, res: Response) => {
         }
 
         const createdOpinion = await Opinion.create(opinion);
+        existingProduct.opinions.push(createdOpinion._id);
+        await existingProduct.save();
         res.status(201).json(createdOpinion);
     } catch (err) {
         const error = err as Error;
@@ -112,8 +118,8 @@ const updateOpinion = async (req: AuthorizedRequest, res: Response) => {
             res.status(404).json({ message: "Opinion not found" });
             return;
         }
-        if (existingOpinion.user !== user) {
-            res.status(401).json({ message: "User is not authorized" });
+        if (!existingOpinion.user.equals(user)) {
+            res.status(403).json({ message: "You do not have access to this resource" });
             return;
         }
         const updatedOpinion = await Opinion.findByIdAndUpdate(id, opinion, { new: true, runValidators: true });
@@ -145,8 +151,8 @@ const deleteOpinion = async (req: AuthorizedRequest, res: Response) => {
             res.status(404).json({ message: "Opinion not found" });
             return;
         }
-        if (opinion.user !== user) {
-            res.status(401).json({ message: "User not authorized" });
+        if (!opinion.user.equals(user)) {
+            res.status(403).json({ message: "You do not have access to this resource" });
             return;
         }
         await opinion.deleteOne();

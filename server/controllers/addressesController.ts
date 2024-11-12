@@ -64,7 +64,7 @@ const getAddress = async (req: AuthorizedRequest, res: Response) => {
             res.status(404).json({ message: "Address not found" });
             return;
         }
-        if (address.user !== user) {
+        if (!address.user.equals(user)) {
             res.status(403).json({ message: "You do not have access to this resource" });
             return;
         }
@@ -94,8 +94,8 @@ const updateAddress = async (req: AuthorizedRequest, res: Response) => {
             res.status(404).json({ message: "Address not found" });
             return;
         }
-        if (existingAddress.user !== user) {
-            res.status(401).json({ message: "User is not authorized" });
+        if (!address.user.equals(user)) {
+            res.status(403).json({ message: "You do not have access to this resource" });
             return;
         }
         const updatedAddress = await Address.findByIdAndUpdate(id, address, { new: true, runValidators: true });
@@ -127,8 +127,8 @@ const deleteAddress = async (req: AuthorizedRequest, res: Response) => {
             res.status(404).json({ message: "Address not found" });
             return;
         }
-        if (address.user !== user) {
-            res.status(401).json({ message: "User not authorized" });
+        if (!address.user.equals(user)) {
+            res.status(403).json({ message: "You do not have access to this resource" });
             return;
         }
         await address.deleteOne();

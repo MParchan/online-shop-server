@@ -11,7 +11,7 @@ import validateId from "../middleware/validateIdHandler";
 
 const router = express.Router();
 
-router.route("/").get(getOpinions).post(validateToken, createOpinion);
+router.route("/").get(validateToken, getOpinions).post(validateToken, createOpinion);
 router
     .route("/:id")
     .get(validateId, getOpinion)
