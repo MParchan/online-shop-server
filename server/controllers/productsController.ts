@@ -10,6 +10,7 @@ import ProductProperty from "../models/productPropertiesModel";
 import Subcategory from "../models/subcategoriesModel";
 import Brand from "../models/brandsModel";
 import PropertyType from "../models/propertyTypesModel";
+import Opinion from "../models/opinionsModel";
 
 //@desc Get all products
 //@route GET /api/<API_VERSION>/products
@@ -558,4 +559,23 @@ const deleteProduct = async (req: Request, res: Response) => {
     }
 };
 
-export { getProducts, createProduct, getProduct, updateProduct, deleteProduct };
+//@desc Get product opinions
+//@route GET /api/<API_VERSION>/products/:id/opinions
+//@access public
+const getProductOpinions = async (req: Request, res: Response) => {
+    try {
+        const id: string = req.params.id;
+        const product = await Product.findById(id);
+        if (!product) {
+            res.status(404).json({ message: "Product not found" });
+            return;
+        }
+        const opinions = await Opinion.find({ product: id });
+        res.status(200).json(opinions);
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export { getProducts, createProduct, getProduct, updateProduct, deleteProduct, getProductOpinions };

@@ -5,7 +5,8 @@ import {
     createProduct,
     getProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    getProductOpinions
 } from "../controllers/productsController";
 import isAdmin from "../middleware/isAdminHandler";
 import validateId from "../middleware/validateIdHandler";
@@ -18,5 +19,6 @@ router
     .get(validateId, getProduct)
     .put(validateId, validateToken, isAdmin, updateProduct)
     .delete(validateId, validateToken, isAdmin, deleteProduct);
+router.route("/:id/opinions").get(validateId, getProductOpinions);
 
 export default router;
