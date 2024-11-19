@@ -570,7 +570,7 @@ const getProductOpinions = async (req: Request, res: Response) => {
             res.status(404).json({ message: "Product not found" });
             return;
         }
-        const opinions = await Opinion.find({ product: id });
+        const opinions = await Opinion.find({ product: id }).populate({ path: "user", select: "firstName" });
         res.status(200).json(opinions);
     } catch (err) {
         const error = err as Error;
