@@ -24,7 +24,12 @@ const getOpinions = async (req: AuthorizedRequest, res: Response) => {
 
         const queryOptions = { skip, limit, sort: { [sortField]: sortOrder } };
 
-        const opinions = await Opinion.find({ user: user }, null, queryOptions);
+        const opinions = await Opinion.find({ user: user }, null, queryOptions).populate({
+            path: "product",
+            populate: {
+                path: "images"
+            }
+        });
         res.status(200).json(opinions);
     } catch (err) {
         const error = err as Error;
@@ -76,7 +81,12 @@ const createOpinion = async (req: AuthorizedRequest, res: Response) => {
 const getOpinion = async (req: Request, res: Response) => {
     try {
         const id: string = req.params.id;
-        const opinion = await Opinion.findById(id);
+        const opinion = await Opinion.findById(id).populate({
+            path: "product",
+            populate: {
+                path: "images"
+            }
+        });
         if (!opinion) {
             res.status(404).json({ message: "Opinion not found" });
             return;
