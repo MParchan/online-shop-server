@@ -94,7 +94,7 @@ const updateAddress = async (req: AuthorizedRequest, res: Response) => {
             res.status(404).json({ message: "Address not found" });
             return;
         }
-        if (!address.user.equals(user)) {
+        if (!existingAddress.user.equals(user)) {
             res.status(403).json({ message: "You do not have access to this resource" });
             return;
         }
