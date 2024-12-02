@@ -10,11 +10,25 @@ const orderSchema = new Schema<IOrder>(
         },
         status: {
             type: String,
+            enum: ["Accepted", "In preparation", "Shipped", "Delivered", "Cancelled"],
             required: [true, "Order status is required"]
         },
         paymentMethod: {
             type: String,
+            enum: ["In preparation", "Shipped", "Delivered", "Cancelled"],
             required: [true, "Order payment method is required"]
+        },
+        customerName: {
+            type: String,
+            required: [true, "Order customer name is required"]
+        },
+        email: {
+            type: String,
+            required: [true, "Order email is required"]
+        },
+        phoneNumber: {
+            type: String,
+            required: [true, "Order phone number is required"]
         },
         country: {
             type: String,

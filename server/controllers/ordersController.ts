@@ -52,6 +52,8 @@ const createOrder = async (req: AuthorizedRequest, res: Response) => {
         }
 
         order.user = user;
+        order.date = new Date();
+        order.status = "Accepted";
         order.orderProducts = [];
         const orderInstance = new Order(order);
         await orderInstance.validate();
@@ -65,9 +67,19 @@ const createOrder = async (req: AuthorizedRequest, res: Response) => {
                     const orderProductInstance = new OrderProduct(orderProduct);
                     await orderProductInstance.validate();
                     await orderProductInstance.save();
-                    await Product.findByIdAndUpdate(orderProduct.product, {
+                    const product = await Product.findByIdAndUpdate(orderProduct.product, {
                         $inc: { quantity: -orderProduct.quantity }
                     });
+                    if (!product) {
+                        const error = new Error("Product not found");
+                        error.name = "NotFound";
+                        throw error;
+                    }
+                    if (product.quantity < 0) {
+                        const error = new Error(`No product ${product.name} in stock`);
+                        error.name = "ValidationError";
+                        throw error;
+                    }
                     orderInstance.orderProducts.push(orderProductInstance._id);
                 })
             );
@@ -83,6 +95,8 @@ const createOrder = async (req: AuthorizedRequest, res: Response) => {
         const error = err as Error;
         if (error.name === "ValidationError") {
             res.status(400).json({ message: error.message });
+        } else if (error.name === "NotFound") {
+            res.status(404).json({ message: error.message });
         } else {
             res.status(500).json({ message: error.message });
         }
@@ -123,4 +137,30 @@ const getOrder = async (req: AuthorizedRequest, res: Response) => {
     }
 };
 
-export { getOrders, createOrder, getOrder };
+//@desc Change order status
+//@route PATCH /api/<API_VERSION>/orders/:id/status
+//@access private - Admin only
+const changeOrderStatus = async (req: AuthorizedRequest, res: Response) => {
+    try {
+        const id: string = req.params.id;
+        const status: string = req.body.status;
+
+        if (!status) {
+            res.status(400).json({ message: "Order statusi is mandatory" });
+            return;
+        }
+
+        const order = await Order.findByIdAndUpdate(id, { status }, { new: true });
+        if (!order) {
+            res.status(404).json({ message: "Order not found" });
+            return;
+        }
+
+        res.status(200).json(order);
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export { getOrders, createOrder, getOrder, changeOrderStatus };
