@@ -115,14 +115,27 @@ const loginUser = async (req: Request, res: Response) => {
 //@desc Current user info
 //@route GET /api/<API_VERSION>/auth/user
 //@access private
-const getCurrentUser = async (req: AuthorizedRequest, res: Response) => {
+const getUserInfo = async (req: AuthorizedRequest, res: Response) => {
     try {
-        const user = req.user;
-        res.status(200).json(user);
+        if (!req.user) {
+            res.status(401).json({ message: "User is not authorized" });
+            return;
+        }
+        const user = await User.findOne({ email: req.user.email });
+        if (!user) {
+            res.status(400).json({ message: "User does not exist" });
+            return;
+        }
+        res.status(200).json({
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            phoneNumber: user.phoneNumber
+        });
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });
     }
 };
 
-export { registerUser, loginUser, getCurrentUser };
+export { registerUser, loginUser, getUserInfo };
