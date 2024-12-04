@@ -15,7 +15,14 @@ const orderSchema = new Schema<IOrder>(
         },
         paymentMethod: {
             type: String,
-            enum: ["In preparation", "Shipped", "Delivered", "Cancelled"],
+            enum: [
+                "Transfer online",
+                "Credit Card",
+                "Traditional transfer",
+                "Google Pay",
+                "Apple Pay",
+                "Cash on delivery"
+            ],
             required: [true, "Order payment method is required"]
         },
         customerName: {
