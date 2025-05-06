@@ -25,7 +25,18 @@ const getOrders = async (req: AuthorizedRequest, res: Response) => {
         const sortOrder: number = req.query.sortOrder === "desc" ? -1 : 1;
 
         const queryOptions = { skip, limit, sort: { [sortField]: sortOrder } };
-        const orders = await Order.find({ user: user }, null, queryOptions);
+        const orders = await Order.find({ user: user }, null, queryOptions).populate({
+            path: "orderProducts",
+            select: "product quantity",
+            populate: {
+                path: "product",
+                select: "name price images",
+                populate: {
+                    path: "images",
+                    select: "image main"
+                }
+            }
+        });
         res.status(200).json(orders);
     } catch (err) {
         const error = err as Error;
@@ -75,7 +86,7 @@ const createOrder = async (req: AuthorizedRequest, res: Response) => {
                         error.name = "NotFound";
                         throw error;
                     }
-                    if (product.quantity < 0) {
+                    if (product.quantity < 0 || product.quantity < orderProduct.quantity) {
                         const error = new Error(`No product ${product.name} in stock`);
                         error.name = "ValidationError";
                         throw error;
@@ -119,14 +130,31 @@ const getOrder = async (req: AuthorizedRequest, res: Response) => {
             path: "orderProducts",
             select: "quantity",
             populate: {
-                path: "product"
+                path: "product",
+                select: "name price",
+                populate: [
+                    {
+                        path: "images",
+                        select: "image main"
+                    },
+                    {
+                        path: "brand",
+                        select: "name"
+                    },
+                    {
+                        path: "subcategory",
+                        select: "name"
+                    }
+                ]
             }
         });
         if (!order) {
             res.status(404).json({ message: "Order not found" });
             return;
         }
-        if (order.user !== user) {
+        console.log(user);
+        console.log(order.user);
+        if (!order.user.equals(user)) {
             res.status(403).json({ message: "You do not have access to this resource" });
             return;
         }
@@ -146,7 +174,7 @@ const changeOrderStatus = async (req: AuthorizedRequest, res: Response) => {
         const status: string = req.body.status;
 
         if (!status) {
-            res.status(400).json({ message: "Order statusi is mandatory" });
+            res.status(400).json({ message: "Order status is mandatory" });
             return;
         }
 
@@ -155,6 +183,7 @@ const changeOrderStatus = async (req: AuthorizedRequest, res: Response) => {
             res.status(404).json({ message: "Order not found" });
             return;
         }
+        await order.validate();
 
         res.status(200).json(order);
     } catch (err) {
