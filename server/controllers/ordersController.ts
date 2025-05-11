@@ -66,6 +66,7 @@ const createOrder = async (req: AuthorizedRequest, res: Response) => {
         order.date = new Date();
         order.status = "Accepted";
         order.orderProducts = [];
+        order.value = 0.0;
         const orderInstance = new Order(order);
         await orderInstance.validate();
 
@@ -91,9 +92,11 @@ const createOrder = async (req: AuthorizedRequest, res: Response) => {
                         error.name = "ValidationError";
                         throw error;
                     }
+                    orderInstance.value += product.price * orderProduct.quantity;
                     orderInstance.orderProducts.push(orderProductInstance._id);
                 })
             );
+            orderInstance.value = Number(orderInstance.value.toFixed(2));
             await orderInstance.save();
         } catch (err) {
             await session.abortTransaction();

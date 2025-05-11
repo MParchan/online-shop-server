@@ -12,5 +12,6 @@ export interface IOrder extends Document {
     zipcode: string;
     street: string;
     user: Types.ObjectId;
+    value: number;
     orderProducts: Types.ObjectId[];
 }

@@ -58,6 +58,16 @@ const orderSchema = new Schema<IOrder>(
             ref: "User",
             required: [true, "Order user is required"]
         },
+        value: {
+            type: Number,
+            validate: {
+                validator: function (value: number) {
+                    return value >= 0 && /^(\d{1,})(\.\d{1,2})?$/.test(value.toString());
+                },
+                message: "{VALUE} is not a positive number with 2 decimal places"
+            },
+            required: [true, "Order value is required"]
+        },
 
         orderProducts: [{ type: Schema.Types.ObjectId, ref: "OrderProduct" }]
     },
