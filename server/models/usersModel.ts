@@ -30,6 +30,13 @@ const userSchema = new Schema<IUser>(
             ref: "Role",
             required: [true, "User role is required"]
         },
+        pushSubscription: {
+            endpoint: { type: String },
+            keys: {
+                p256dh: { type: String },
+                auth: { type: String }
+            }
+        },
 
         addresses: [{ type: Schema.Types.ObjectId, ref: "Address" }],
         opinions: [{ type: Schema.Types.ObjectId, ref: "Opinion" }],

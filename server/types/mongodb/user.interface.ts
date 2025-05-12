@@ -7,6 +7,13 @@ export interface IUser extends Document {
     firstName: string;
     lastName: string;
     role: Types.ObjectId;
+    pushSubscription?: {
+        endpoint: string;
+        keys: {
+            p256dh: string;
+            auth: string;
+        };
+    };
     addresses: Types.ObjectId[];
     opinions: Types.ObjectId[];
     orders: Types.ObjectId[];

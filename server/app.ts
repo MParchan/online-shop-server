@@ -1,6 +1,7 @@
 import express, { Application } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import webpush from "web-push";
 import { connectDb } from "./config/dbConnection";
 import authRoute from "./routes/authRoute";
 import rolesRoute from "./routes/rolesRoute";
@@ -13,6 +14,7 @@ import productsRoute from "./routes/productsRoute";
 import opinionsRoute from "./routes/opinionsRoute";
 import ordersRoute from "./routes/ordersRoute";
 import addressesRoute from "./routes/addressesRoute";
+import subscribeRoute from "./routes/subscribeRoute";
 import helmet from "helmet";
 
 dotenv.config();
@@ -21,6 +23,7 @@ connectDb();
 const app: Application = express();
 const apiVersion: string = "v1";
 
+webpush.setVapidDetails("mailto:admin@admin.com", process.env.VAPID_PUBLIC_KEY!, process.env.VAPID_PRIVATE_KEY!);
 const whitelist = process.env.CORS_ORIGIN?.split(", ") || [];
 const corsOptions = {
     origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
@@ -54,5 +57,6 @@ app.use(`/api/${apiVersion}/products`, productsRoute);
 app.use(`/api/${apiVersion}/opinions`, opinionsRoute);
 app.use(`/api/${apiVersion}/orders`, ordersRoute);
 app.use(`/api/${apiVersion}/addresses`, addressesRoute);
+app.use(`/api/${apiVersion}/subscribe`, subscribeRoute);
 
 export default app;

@@ -7,6 +7,7 @@ import { IOrder } from "../types/mongodb/order.interface";
 import { startSession } from "mongoose";
 import OrderProduct from "../models/orderProductsModel";
 import Product from "../models/productsModel";
+import { sendStatusNotification } from "./subscribeController";
 
 //@desc Get all user orders
 //@route GET /api/<API_VERSION>/orders
@@ -155,8 +156,6 @@ const getOrder = async (req: AuthorizedRequest, res: Response) => {
             res.status(404).json({ message: "Order not found" });
             return;
         }
-        console.log(user);
-        console.log(order.user);
         if (!order.user.equals(user)) {
             res.status(403).json({ message: "You do not have access to this resource" });
             return;
@@ -187,7 +186,7 @@ const changeOrderStatus = async (req: AuthorizedRequest, res: Response) => {
             return;
         }
         await order.validate();
-
+        await sendStatusNotification(order.user, order.status);
         res.status(200).json(order);
     } catch (err) {
         const error = err as Error;
