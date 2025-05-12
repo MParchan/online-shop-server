@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import webpush from "web-push";
 import { connectDb } from "./config/dbConnection";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger";
 import authRoute from "./routes/authRoute";
 import rolesRoute from "./routes/rolesRoute";
 import categoriesRoutes from "./routes/categoriesRoute";
@@ -39,6 +41,7 @@ const corsOptions = {
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get("/", (req, res) => {
     res.json({
