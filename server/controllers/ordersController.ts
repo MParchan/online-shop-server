@@ -38,7 +38,10 @@ const getOrders = async (req: AuthorizedRequest, res: Response) => {
                 }
             }
         });
-        res.status(200).json(orders);
+
+        const orderCount = orders.length;
+        const paginatedOrders = orders.slice(skip, skip + limit);
+        res.status(200).json({ orders: paginatedOrders, orderCount: orderCount });
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ message: error.message });
