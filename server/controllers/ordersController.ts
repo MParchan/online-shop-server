@@ -167,8 +167,105 @@ const getOrder = async (req: AuthorizedRequest, res: Response) => {
     }
 };
 
+//@desc Get all orders
+//@route GET /api/<API_VERSION>/orders/admin/all
+//@access private - Admin only
+const getAllOrders = async (req: AuthorizedRequest, res: Response) => {
+    try {
+        const user = await getUserId(req);
+        if (!user) {
+            res.status(401).json({ message: "User is not authorized" });
+            return;
+        }
+        const page: number = Number(req.query.page) || 1;
+        const limit: number = Number(req.query.limit) || 20;
+        const skip: number = (page - 1) * limit;
+        const sortField: string = String(req.query.sortField || "createdAt");
+        const sortOrder: number = req.query.sortOrder === "desc" ? -1 : 1;
+
+        const queryOptions = { skip, limit, sort: { [sortField]: sortOrder } };
+        const orders = await Order.find({}, null, queryOptions)
+            .populate({
+                path: "orderProducts",
+                select: "product quantity",
+                populate: {
+                    path: "product",
+                    select: "name price images",
+                    populate: {
+                        path: "images",
+                        select: "image main"
+                    }
+                }
+            })
+            .populate({
+                path: "user",
+                select: "firstName lastName email phoneNumber"
+            });
+
+        const orderCount = orders.length;
+        const paginatedOrders = orders.slice(skip, skip + limit);
+
+        res.status(200).json({ orders: paginatedOrders, orderCount: orderCount });
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ message: error.message });
+    }
+};
+
+//@desc Get order
+//@route GET /api/<API_VERSION>/orders/:id/details
+//@access private - Admin only
+const getOrderDetails = async (req: AuthorizedRequest, res: Response) => {
+    try {
+        const id: string = req.params.id;
+        const user = await getUserId(req);
+        if (!user) {
+            res.status(401).json({ message: "User is not authorized" });
+            return;
+        }
+
+        const order = await Order.findById(id)
+            .populate({
+                path: "orderProducts",
+                select: "quantity",
+                populate: {
+                    path: "product",
+                    select: "name price",
+                    populate: [
+                        {
+                            path: "images",
+                            select: "image main"
+                        },
+                        {
+                            path: "brand",
+                            select: "name"
+                        },
+                        {
+                            path: "subcategory",
+                            select: "name"
+                        }
+                    ]
+                }
+            })
+            .populate({
+                path: "user",
+                select: "firstName lastName email phoneNumber"
+            });
+
+        if (!order) {
+            res.status(404).json({ message: "Order not found" });
+            return;
+        }
+
+        res.status(200).json(order);
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ message: error.message });
+    }
+};
+
 //@desc Change order status
-//@route PATCH /api/<API_VERSION>/orders/:id/status
+//@route PATCH /api/<API_VERSION>/orders/admin/:id/status
 //@access private - Admin only
 const changeOrderStatus = async (req: AuthorizedRequest, res: Response) => {
     try {
@@ -194,4 +291,4 @@ const changeOrderStatus = async (req: AuthorizedRequest, res: Response) => {
     }
 };
 
-export { getOrders, createOrder, getOrder, changeOrderStatus };
+export { getOrders, createOrder, getOrder, getAllOrders, getOrderDetails, changeOrderStatus };
