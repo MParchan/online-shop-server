@@ -7,6 +7,7 @@ import emailValidation from "../utils/emailValidation";
 import { AuthorizedRequest } from "../types/express/authorizedRequest.interface";
 import Role from "../models/rolesModel";
 import { IUser } from "../types/mongodb/user.interface";
+import { IRole } from "../types/mongodb/role.interface";
 
 //@desc User registration
 //@route POST /api/<API_VERSION>/auth/register
@@ -90,7 +91,7 @@ const loginUser = async (req: Request, res: Response) => {
             res.status(400).json({ message: "Fields email and password are mandatory" });
             return;
         }
-        const user = await User.findOne({ email: email });
+        const user = (await User.findOne({ email: email }).populate("role")) as IUser & { role: IRole };
         if (!user || (user.password && !bcrypt.compare(password, user.password))) {
             res.status(400).json({ message: "Email or password is not valid" });
             return;
@@ -99,7 +100,8 @@ const loginUser = async (req: Request, res: Response) => {
             {
                 user: {
                     email: user.email,
-                    firstname: user.firstName
+                    firstname: user.firstName,
+                    role: user.role.name
                 }
             },
             process.env.ACCESS_TOKEN_SECRET || "Secret",
