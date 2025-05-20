@@ -286,7 +286,7 @@ const changeOrderStatus = async (req: AuthorizedRequest, res: Response) => {
             return;
         }
         await order.validate();
-        await sendStatusNotification(order.user, order.status);
+        await sendStatusNotification(id, order.user, order.status);
         res.status(200).json(order);
     } catch (err) {
         const error = err as Error;

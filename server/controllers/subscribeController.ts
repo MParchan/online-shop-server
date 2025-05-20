@@ -25,7 +25,7 @@ export const savePushSubscription = async (req: AuthorizedRequest, res: Response
     }
 };
 
-export const sendStatusNotification = async (userId: Types.ObjectId, newStatus: string) => {
+export const sendStatusNotification = async (orderId: string, userId: Types.ObjectId, newStatus: string) => {
     const user = await User.findById(userId);
     const subscription = user?.pushSubscription;
 
@@ -33,7 +33,8 @@ export const sendStatusNotification = async (userId: Types.ObjectId, newStatus: 
 
     const payload = JSON.stringify({
         title: "Order status",
-        body: `Your order status has been changed to: ${newStatus}`
+        body: `Your order status has been changed to: ${newStatus}`,
+        url: `/orders/${orderId}`
     });
 
     try {
