@@ -14,6 +14,8 @@ export interface IUser extends Document {
             auth: string;
         };
     };
+    expoPushToken: string;
+    fcmToken: string;
     addresses: Types.ObjectId[];
     opinions: Types.ObjectId[];
     orders: Types.ObjectId[];

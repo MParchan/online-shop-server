@@ -37,6 +37,12 @@ const userSchema = new Schema<IUser>(
                 auth: { type: String }
             }
         },
+        expoPushToken: {
+            type: String
+        },
+        fcmToken: {
+            type: String
+        },
 
         addresses: [{ type: Schema.Types.ObjectId, ref: "Address" }],
         opinions: [{ type: Schema.Types.ObjectId, ref: "Opinion" }],
