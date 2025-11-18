@@ -27,9 +27,14 @@ export const savePushSubscription = async (req: AuthorizedRequest, res: Response
 
         const subscription: PushSubscriptionPayload = req.body;
 
-        await User.findByIdAndUpdate(userId, {
-            ...subscription
-        });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const update: any = {};
+
+        if (subscription.webPush) update.webPush = subscription.webPush;
+        if (subscription.expoPushToken) update.expoPushToken = subscription.expoPushToken;
+        if (subscription.fcmToken) update.fcmToken = subscription.fcmToken;
+
+        await User.findByIdAndUpdate(userId, { $set: update }, { new: true });
 
         res.status(200).json({ message: "Subscription saved" });
     } catch (err) {
