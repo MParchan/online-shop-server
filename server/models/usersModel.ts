@@ -30,7 +30,7 @@ const userSchema = new Schema<IUser>(
             ref: "Role",
             required: [true, "User role is required"]
         },
-        pushSubscription: {
+        webPush: {
             endpoint: { type: String },
             keys: {
                 p256dh: { type: String },

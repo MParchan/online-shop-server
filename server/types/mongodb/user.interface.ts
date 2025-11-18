@@ -7,7 +7,7 @@ export interface IUser extends Document {
     firstName: string;
     lastName: string;
     role: Types.ObjectId;
-    pushSubscription?: {
+    webPush?: {
         endpoint: string;
         keys: {
             p256dh: string;

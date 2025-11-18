@@ -49,8 +49,8 @@ export const sendStatusNotification = async (orderId: string, userId: Types.Obje
         data: { url: `/orders/${orderId}` }
     };
 
-    if (user.pushSubscription) {
-        await sendWebPush(user.pushSubscription, payload);
+    if (user.webPush) {
+        await sendWebPush(user.webPush, payload);
     }
 
     if (user.expoPushToken) {
